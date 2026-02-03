@@ -1,5 +1,5 @@
 /* To compile:
- * run make and then ru the following.
+ * run make and then run the following.
  * gcc test_agui.c -o test_agui -L./ -lagui
  */
 
