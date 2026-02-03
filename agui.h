@@ -57,17 +57,17 @@ enum {
     DRAW_CROSS
 };
 
-void setColor(int fg, int bg);
-void setEffect(int effect);
-void homeCursor();
-void clearScreen();
-void mvClearEol(int row, int col);
-void clearEol();
-void hideCursor();
-void unhideCursor();
-void mvCursor(int row, int col);
-void mvText(int row, int col, char *txt, ...);
-void setAll(int fg, int bg, int effect);
+void aguiSetColor(int fg, int bg);
+void aguiSetEffect(int effect);
+void aguiHomeCursor();
+void aguiClearScreen();
+void aguiMvClearEol(int row, int col);
+void aguiClearEol();
+void aguiHideCursor();
+void aguiUnhideCursor();
+void aguiMvCursor(int row, int col);
+void aguiMvText(int row, int col, char *txt, ...);
+void aguiSetAll(int fg, int bg, int effect);
 
 
 #endif
