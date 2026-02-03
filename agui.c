@@ -102,22 +102,22 @@ void aguiMvDown(int numLines) {
 }
 
 // Clear to EOL from current position
-void clearEol() {
+void aguiClearEol() {
     printf("\033[K");
 }
 
 // Hide cursor
-void hideCursor() {
+void aguiHideCursor() {
     printf("\033[?25l");
 }
 
 // unhide cursor
-void unhideCursor() {
+void aguiUnhideCursor() {
     printf("\033[?25h");
 }
 
 // Move cursor
-void mvCursor(int row, int col) {
+void aguiMvCursor(int row, int col) {
     char cmd[128];
 
     sprintf(cmd, "\033[%d;%dH", row, col);
@@ -125,7 +125,7 @@ void mvCursor(int row, int col) {
 }
 
 // Move cursor and print text
-void mvText(int row, int col, char *txt, ...) {
+void aguiMvText(int row, int col, char *txt, ...) {
     va_list args;
     va_start(args, txt);
 
@@ -136,7 +136,7 @@ void mvText(int row, int col, char *txt, ...) {
 }
 
 // Set fg, bg amd effect of future text.
-void setAll(int fg, int bg, int effect) {
+void aguiSetAll(int fg, int bg, int effect) {
     if (effect > 0)
         aguiSetEffect(effect);
     if (fg > 0 && bg > 0)
