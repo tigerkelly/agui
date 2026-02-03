@@ -129,7 +129,7 @@ void mvText(int row, int col, char *txt, ...) {
     va_list args;
     va_start(args, txt);
 
-    mvCursor(row, col);
+    aguiMvCursor(row, col);
     vprintf(txt, args);
 
     va_end(args);
@@ -138,7 +138,7 @@ void mvText(int row, int col, char *txt, ...) {
 // Set fg, bg amd effect of future text.
 void setAll(int fg, int bg, int effect) {
     if (effect > 0)
-        setEffect(effect);
+        aguiSetEffect(effect);
     if (fg > 0 && bg > 0)
-        setColor(fg, bg);
+        aguiSetColor(fg, bg);
 }
