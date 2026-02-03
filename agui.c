@@ -11,7 +11,8 @@
 
 #include "agui.h"
 
-void setColor(int fg, int bg) {
+// Set fg and bg color.
+void aguiSetColor(int fg, int bg) {
     switch (fg) {
     case COLOR_BLACK:           printf("\033[30m"); break;
     case COLOR_RED:             printf("\033[31m"); break;
@@ -51,9 +52,8 @@ void setColor(int fg, int bg) {
     case COLOR_BRIGHT_WHITE:    printf("\033[107m"); break;
     case COLOR_DEFAULT:         printf("\033[49m"); break;
     }
-}
-
-void setEffect(int effect) {
+}// Set text efects like boldness and italics.
+void aguiSetEffect(int effect) {
     switch (effect) {
     case TEXT_BOLD:             printf("\033[1m"); break;
     case TEXT_DIM:              printf("\033[2m"); break;
@@ -74,30 +74,49 @@ void setEffect(int effect) {
     }
 }
 
-void homeCursor() {
+// Home cursor
+void aguiHomeCursor() {
     printf("\033[H");
 }
 
-void clearScreen() {
+// Clear screen
+void aguiClearScreen() {
     printf("\033[H\033[0J");
 }
 
-void mvClearEol(int row, int col) {
+// Move to position and clear to end of line
+void aguiMvClearEol(int row, int col) {
     printf("\033[%d;%dH\033[K", row, col);
 }
 
+// Move curosr up N lines
+void aguiMvUp(int numLines) {
+    if (numLines > 0)
+        printf("\033[%dA", numLines);
+}
+
+// Move cursor down N lines
+void aguiMvDown(int numLines) {
+    if (numLines > 0)
+        printf("\033[%dB", numLines);
+}
+
+// Clear to EOL from current position
 void clearEol() {
     printf("\033[K");
 }
 
+// Hide cursor
 void hideCursor() {
     printf("\033[?25l");
 }
 
+// unhide cursor
 void unhideCursor() {
     printf("\033[?25h");
 }
 
+// Move cursor
 void mvCursor(int row, int col) {
     char cmd[128];
 
@@ -105,6 +124,7 @@ void mvCursor(int row, int col) {
     printf("%s", cmd);
 }
 
+// Move cursor and print text
 void mvText(int row, int col, char *txt, ...) {
     va_list args;
     va_start(args, txt);
@@ -115,6 +135,7 @@ void mvText(int row, int col, char *txt, ...) {
     va_end(args);
 }
 
+// Set fg, bg amd effect of future text.
 void setAll(int fg, int bg, int effect) {
     if (effect > 0)
         setEffect(effect);
