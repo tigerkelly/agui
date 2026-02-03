@@ -1,3 +1,7 @@
+/* Ascii escape code library for displaying information.
+ * Create by Kelly Wiles
+ */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
