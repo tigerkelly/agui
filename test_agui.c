@@ -22,7 +22,7 @@ int main(int argc, char *argv[]) {
     getchar();
 
     aguiClearScreen();
-    aguiiUnhideCursor();
+    aguiUnhideCursor();
 
     return 0;
 }
