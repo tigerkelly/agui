@@ -14,15 +14,15 @@
 
 int main(int argc, char *argv[]) {
 
-    clearScreen();
-    hideCursor();
+    aguiClearScreen();
+    aguiHideCursor();
 
-    mvText(10, 20, "Hello World !!!");
+    aguiMvText(10, 20, "Hello World !!!");
 
     getchar();
 
-    clearScreen();
-    unhideCursor();
+    aguiClearScreen();
+    aguiiUnhideCursor();
 
     return 0;
 }
