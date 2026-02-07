@@ -11,6 +11,8 @@
 
 #include "agui.h"
 
+#include "chartable.c"
+
 // Set fg and bg color.
 void aguiSetColor(int fg, int bg) {
     switch (fg) {
@@ -89,6 +91,31 @@ void aguiMvClearEol(int row, int col) {
     printf("\033[%d;%dH\033[K", row, col);
 }
 
+// Enable blinking cursor
+void aguiBlinkCursor() {
+        printf("\033[?12h");
+}
+
+// Disable blinking cursor
+void aguiUnblinkCursor() {
+        printf("\033[?12l");
+}
+
+// Move forward N columns
+void aguiForward(int numCols) {
+        printf("\033[%dC", numCols);
+}
+
+// Move backward N columns
+void aguiBackward(int numCols) {
+        printf("\033[%dC", numCols);
+}
+
+// Move to column N
+void aguiMvColumn(int colNum) {
+        printf("\033[%dG", colNum);
+}
+
 // Move curosr up N lines
 void aguiMvUp(int numLines) {
     if (numLines > 0)
@@ -141,4 +168,250 @@ void aguiSetAll(int fg, int bg, int effect) {
         aguiSetEffect(effect);
     if (fg > 0 && bg > 0)
         aguiSetColor(fg, bg);
+}
+
+void aguiBox(int row, int col, int width, int height, bool useSingleLine) {
+        int r = row;
+        int c = col;
+
+        UnicodeChar *u = NULL;
+
+        if (useSingleLine == true)
+                u = single_line;
+        else
+                u = double_line;
+
+        aguiMvText(r, c++, "%s", u[TOP_LEFT].symbol);
+        for (int i = 1; i < width; i++) {
+                aguiMvText(r, c, "%s", u[HORIZ_LINE].symbol);
+                c++;
+        }
+        aguiMvText(r, c, "%s", u[TOP_RIGHT].symbol);
+
+        r = row + 1;
+        for (int i = 1; i < height; i++) {
+                aguiMvText(r, col, "%s", u[VERT_LINE].symbol);
+                aguiMvText(r, col + width, "%s", u[VERT_LINE].symbol);
+                r++;
+        }
+
+        c = col;
+        aguiMvText(r, c++, "%s", u[BOTTOM_LEFT].symbol);
+        for (int i = 1; i < width; i++) {
+                aguiMvText(r, c, "%s", u[HORIZ_LINE].symbol);
+                c++;
+        }
+        aguiMvText(r, c, "%s", u[BOTTOM_RIGHT].symbol);
+}
+
+void aguiBoxTop(int row, int col, int width, bool useSingleLine) {
+        int r = row;
+        int c = col;
+
+        UnicodeChar *u = NULL;
+
+        if (useSingleLine == true)
+                u = single_line;
+        else
+                u = double_line;
+
+        aguiMvText(r, c++, "%s", u[TOP_LEFT].symbol);
+        for (int i = 1; i < width; i++) {
+                aguiMvText(r, c, "%s", u[HORIZ_LINE].symbol);
+                c++;
+        }
+        aguiMvText(r, c, "%s", u[TOP_RIGHT].symbol);
+}
+
+void aguiBoxBottom(int row, int col, int width, bool useSingleLine) {
+        int r = row;
+        int c = col;
+
+        UnicodeChar *u = NULL;
+
+        if (useSingleLine == true)
+                u = single_line;
+        else
+                u = double_line;
+
+        aguiMvText(r, c++, "%s", u[BOTTOM_LEFT].symbol);
+        for (int i = 1; i < width; i++) {
+                aguiMvText(r, c, "%s", u[HORIZ_LINE].symbol);
+                c++;
+        }
+        aguiMvText(r, c, "%s", u[BOTTOM_RIGHT].symbol);
+}
+
+void aguiHorizLine(int row, int col, int width, bool useSingleLine) {
+        int r = row;
+        int c = col;
+
+        UnicodeChar *u = NULL;
+
+        if (useSingleLine == true)
+                u = single_line;
+        else
+                u = double_line;
+
+        for (int i = 0; i < width; i++) {
+                aguiMvText(r, c, "%s", u[HORIZ_LINE].symbol);
+                c++;
+        }
+}
+
+void aguiVertLine(int row, int col, int height, bool useSingleLine) {
+        int r = row;
+        int c = col;
+
+        UnicodeChar *u = NULL;
+
+        if (useSingleLine == true)
+                u = single_line;
+        else
+                u = double_line;
+
+        for (int i = 0; i < height; i++) {
+                aguiMvText(r, c, "%s", u[VERT_LINE].symbol);
+                r++;
+        }
+}
+
+void aguiBlockBox(int row, int col, int width, int height, bool useHalfBlock) {
+        int r = row;
+        int c = col;
+
+        if (useHalfBlock == true) {
+                aguiMvText(r, c++, "%s", block_elements[BLK_LOWER_HALF].symbol);
+                for (int i = 1; i < width; i++) {
+                        aguiMvText(r, c, "%s", block_elements[BLK_LOWER_HALF].symbol);
+                        c++;
+                }
+                aguiMvText(r, c, "%s", block_elements[BLK_LOWER_HALF].symbol);
+
+                r = row + 1;
+                for (int i = 1; i < height; i++) {
+                        aguiMvText(r, col, "%s", block_elements[BLK_LEFT_HALF].symbol);
+                        aguiMvText(r, col + width, "%s", block_elements[BLK_RIGHT_HALF].symbol);
+                        r++;
+                }
+
+                c = col;
+                aguiMvText(r, c++, "%s", block_elements[BLK_UPPER_HALF].symbol);
+                for (int i = 1; i < width; i++) {
+                        aguiMvText(r, c, "%s", block_elements[BLK_UPPER_HALF].symbol);
+                        c++;
+                }
+                aguiMvText(r, c, "%s", block_elements[BLK_UPPER_HALF].symbol);
+        } else {
+                aguiMvText(r, c++, "%s", block_elements[BLK_FULL].symbol);
+                for (int i = 1; i < width; i++) {
+                        aguiMvText(r, c, "%s", block_elements[BLK_FULL].symbol);
+                        c++;
+                }
+                aguiMvText(r, c, "%s", block_elements[BLK_FULL].symbol);
+
+                r = row + 1;
+                for (int i = 1; i < height; i++) {
+                        aguiMvText(r, col, "%s", block_elements[BLK_FULL].symbol);
+                        aguiMvText(r, col + width, "%s", block_elements[BLK_FULL].symbol);
+                        r++;
+                }
+
+                c = col;
+                aguiMvText(r, c++, "%s", block_elements[BLK_FULL].symbol);
+                for (int i = 1; i < width; i++) {
+                        aguiMvText(r, c, "%s", block_elements[BLK_FULL].symbol);
+                        c++;
+                }
+                aguiMvText(r, c, "%s", block_elements[BLK_FULL].symbol);
+        }
+
+}
+
+void aguiBoxLeft(int row, int col, int height, bool useSingleLine) {
+        int r = row;
+
+        UnicodeChar *u = NULL;
+
+    if (useSingleLine == true) {
+        u = single_line;
+    } else {
+        u = double_line;
+        }
+
+        aguiMvText(r++, col, "%s", u[TOP_LEFT].symbol);
+        for (int i = 0; i < height; i++) {
+                aguiMvText(r, col, "%s", u[VERT_LINE].symbol);
+                r++;
+        }
+        aguiMvText(row + height, col, "%s", u[BOTTOM_LEFT].symbol);
+}
+
+void aguiBoxRight(int row, int col, int height, bool useSingleLine) {
+        int r = row;
+
+        UnicodeChar *u = NULL;
+
+    if (useSingleLine == true) {
+        u = single_line;
+    } else {
+        u = double_line;
+        }
+
+        aguiMvText(r++, col, "%s", u[TOP_RIGHT].symbol);
+        for (int i = 0; i < height; i++) {
+                aguiMvText(r, col, "%s", u[VERT_LINE].symbol);
+                r++;
+        }
+        aguiMvText(row + height, col, "%s", u[BOTTOM_RIGHT].symbol);
+}
+
+void aguiMvShape(int row, int col, int shape) {
+        aguiMvText(row, col, "%s", geometric_shapes[shape].symbol);
+}
+
+void aguiShape(int shape) {
+        printf("%s", geometric_shapes[shape].symbol);
+}
+
+void aguiMvArrow(int row, int col, int arrow) {
+        aguiMvText(row, col, "%s", arrows[arrow].symbol);
+}
+
+void aguiArrow(int arrow) {
+        printf("%s", arrows[arrow].symbol);
+}
+
+// Card suits
+void aguiMvCard(int row, int col, int card) {
+        aguiMvText(row, col, "%s", card_suits[card].symbol);
+}
+
+// Card suits
+void aguiCard(int card) {
+        printf("%s", card_suits[card].symbol);
+}
+
+void aguiMvMusic(int row, int col, int note) {
+        aguiMvText(row, col, "%s", music_symbols[note].symbol);
+}
+
+void aguiMusic(int note) {
+        printf("%s", music_symbols[note].symbol);
+}
+
+void aguiMvMath(int row, int col, int symbol) {
+        aguiMvText(row, col, "%s", math_symbols[symbol].symbol);
+}
+
+void aguiMath(int symbol) {
+        printf("%s", math_symbols[symbol].symbol);
+}
+
+void aguiMvCurrency(int row, int col, int sign) {
+        aguiMvText(row, col, "%s", currency_symbols[sign].symbol);
+}
+
+void aguiCurrency(int sign) {
+        printf("%s", currency_symbols[sign].symbol);
 }
