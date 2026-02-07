@@ -8,7 +8,7 @@ To make the agui library just type make.
 To compile the test_agui program see the comment at the top of the test_agui.c file.
 
 I wrote this library to help display network statics in a putty terminal.  At some point I may make the Netowrk Monitor System avaiiable.
-I like terminals to have white backgrounds and black forground colors, so you may have to play around with the aguiSetColor function if you use a different colros.
+I like terminals to have white backgrounds and black forground colors, so you may have to play around with the aguiSetColor function if you use different colors.
 
 Contact me if you have questions or issues.
 Enjoy
