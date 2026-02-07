@@ -5,6 +5,9 @@ This is only for displaying information and it does not allow for user input oth
 This does not mean you can not add input support yourself.
 
 NOTE: The capabilities of a terminal program range greatly.  This works fine using the putty program version 0.83
+Be sure and set the configuration of putty session.
+Window->Translation->Remote Character set = UTF-8 and
+Check Window->Translation->Use Unicode linedrawing code points.
 
 To make the agui library just type make.
 To compile the test_agui program see the comment at the top of the test_agui.c file.
