@@ -46,10 +46,10 @@ enum {
 enum {
     HORIZ_LINE,
     VERT_LINE,
-    TOP_LEFT,                           // top left corner
-    TOP_RIGHT,                          // top right corner
-    BOTTOM_LEFT,                        // bottom left corner
-    BOTTOM_RIGHT,                       // bottom right corner
+    TOP_LEFT,                   // top left corner
+    TOP_RIGHT,          // top right corner
+    BOTTOM_LEFT,        // bottom left corner
+    BOTTOM_RIGHT,       // bottom right corner
     LEFT_T,
     RIGHT_T,
     TOP_T,
@@ -60,7 +60,7 @@ enum {
 enum {
         D_HORIZ_LINE,
         D_VERT_LINE,
-        D_TOP_LEFT,                     // BOX DRAWINGS DOWN SINGLE AND RIGHT DOUBLE
+        D_TOP_LEFT,             // BOX DRAWINGS DOWN SINGLE AND RIGHT DOUBLE
         D_TOP_LEFT2,            // BOX DRAWINGS DOWN SINGLE AND RIGHT DOUBLE
         D_TOP_LEFT3,            // BOX DRAWINGS DOWN DOUBLE AND RIGHT SINGLE
         D_TOP_RIGHT,            // BOX DRAWINGS DOWN SINGLE AND LEFT DOUBLE
@@ -72,27 +72,27 @@ enum {
         D_BOTTOM_RIGHT,         // BOX DRAWINGS UP SINGLE AND LEFT DOUBLE
         D_BOTTOM_RIGHT2,        // BOX DRAWINGS UP DOUBLE AND LEFT SINGLE
         D_BOTTOM_RIGHT3,        // BOX DRAWINGS DOUBLE UP AND LEFT
-        D_TEE_LEFT,                     // BOX DRAWINGS VERTICAL SINGLE AND RIGHT DOUBLE
+        D_TEE_LEFT,             // BOX DRAWINGS VERTICAL SINGLE AND RIGHT DOUBLE
         D_TEE_LEFT2,            // BOX DRAWINGS VERTICAL DOUBLE AND RIGHT SINGLE
         D_TEE_LEFT3,            // BOX DRAWINGS DOUBLE VERTICAL AND RIGHT
         D_TEE_RIGHT,            // BOX DRAWINGS VERTICAL SINGLE AND LEFT DOUBLE
         D_TEE_RIGHT2,           // BOX DRAWINGS VERTICAL DOUBLE AND LEFT SINGLE
         D_TEE_RIGHT3,           // BOX DRAWINGS DOUBLE VERTICAL AND LEFT
-        D_T_TOP,                        // BOX DRAWINGS DOWN SINGLE AND HORIZONTAL DOUBLE
-        D_T_TOP2,                       // BOX DRAWINGS DOWN DOUBLE AND HORIZONTAL SINGLE
-        D_T_TOP3,                       // BOX DRAWINGS DOUBLE DOWN AND HORIZONTAL
-        D_T_BOTTOM,                     // BOX DRAWINGS UP SINGLE AND HORIZONTAL DOUBLE
+        D_T_TOP,                // BOX DRAWINGS DOWN SINGLE AND HORIZONTAL DOUBLE
+        D_T_TOP2,               // BOX DRAWINGS DOWN DOUBLE AND HORIZONTAL SINGLE
+        D_T_TOP3,               // BOX DRAWINGS DOUBLE DOWN AND HORIZONTAL
+        D_T_BOTTOM,             // BOX DRAWINGS UP SINGLE AND HORIZONTAL DOUBLE
         D_T_BOTTOM2,            // BOX DRAWINGS UP DOUBLE AND HORIZONTAL SINGLE
         D_T_BOTTOM3,            // BOX DRAWINGS DOUBLE UP AND HORIZONTAL
-        D_CROSS,                        // BOX DRAWINGS VERTICAL SINGLE AND HORIZONTAL DOUBLE
-        D_CROSS2,                       // BOX DRAWINGS VERTICAL DOUBLE AND HORIZONTAL SINGLE
-        D_CROSS3                        // BOX DRAWINGS DOUBLE VERTICAL AND HORIZONTAL
+        D_CROSS,                // BOX DRAWINGS VERTICAL SINGLE AND HORIZONTAL DOUBLE
+        D_CROSS2,               // BOX DRAWINGS VERTICAL DOUBLE AND HORIZONTAL SINGLE
+        D_CROSS3                // BOX DRAWINGS DOUBLE VERTICAL AND HORIZONTAL
 };
 
 enum {
         BLK_UPPER_HALF,         // UPPER HALF BLOCK
         BLK_LOWER_HALF,         // LOWER HALF BLOCK
-        BLK_FULL,                       // FULL BLOCK
+        BLK_FULL,               // FULL BLOCK
         BLK_LEFT_HALF,          // LEFT HALF BLOCK
         BLK_RIGHT_HALF,         // RIGHT HALF BLOCK
         BLK_LIGHT_SHADE,        // LIGHT SHADE
@@ -113,10 +113,10 @@ enum {
 
 // geometric_shapes
 enum {
-        B_SQUARE,                       // BLACK SQUARE
-        W_SQUARE,                       // WHITE SQUARE
-        S_B_SQUARE,                     // BLACK SMALL SQUARE
-        S_W_SQUARE,                     // WHITE SMALL SQUARE
+        B_SQUARE,               // BLACK SQUARE
+        W_SQUARE,               // WHITE SQUARE
+        S_B_SQUARE,             // BLACK SMALL SQUARE
+        S_W_SQUARE,             // WHITE SMALL SQUARE
         B_RECTANGLE,            // BLACK RECTANGLE
         B_UP_TRIANGLE,          // BLACK UP-POINTING TRIANGLE
         W_UP_TRIANGLE,          // WHITE UP-POINTING TRIANGLE
@@ -124,27 +124,29 @@ enum {
         W_DOWN_TRIANGLE,        // BLACK DOWN-POINTING TRIANGLE
         B_LEFT_TRIANGLE,        // WHITE DOWN-POINTING TRIANGLE
         W_LEFT_TRIANGLE,        // BLACK LEFT-POINTING POINTER
-        B_DIAMOND,                      // BLACK DIAMOND
-        W_DIAMOND,                      // WHITE DIAMOND
-        LOZENGE,                        // LOZENGE
-        W_CIRCLE,                       // WHITE CIRCLE
-        D_CIRCLE,                       // DOTTED CIRCLE
-        BULLSEYE,                       // BULLSEYE
-        B_CIRCLE,                       // BLACK CIRCLE
+        B_DIAMOND,              // BLACK DIAMOND
+        W_DIAMOND,              // WHITE DIAMOND
+        LOZENGE,                // LOZENGE
+        W_CIRCLE,               // WHITE CIRCLE
+        D_CIRCLE,               // DOTTED CIRCLE
+        BULLSEYE,               // BULLSEYE
+        B_CIRCLE,               // BLACK CIRCLE
         INVERSE_BULLET,         // INVERSE BULLET
         INVERSE_W_CIRCLE,       // INVERSE WHITE CIRCLE
-        W_BULLET                        // WHITE BULLET
+        W_BULLET                // WHITE BULLET
 };
 
+// Arrows
 enum {
-        LEFT_ARROW,                     // LEFTWARDS ARROW
-        UP_ARROW,                       // UPWARDS ARROW
+        LEFT_ARROW,             // LEFTWARDS ARROW
+        UP_ARROW,               // UPWARDS ARROW
         RIGHT_ARROW,            // RIGHTWARDS ARROW
-        DOWN_ARROW,                     // DOWNWARDS ARROW
+        DOWN_ARROW,             // DOWNWARDS ARROW
         LEFT_RIGHT_ARROW,       // LEFT RIGHT ARROW
         UP_DOWN_ARROW           // UP DOWN ARROW
 };
 
+// Card Suits
 enum {
         SPADE,          // BLACK SPADE SUIT
         CLUB,           // BLACK CLUB SUIT
@@ -152,43 +154,45 @@ enum {
         DIAMOND         // BLACK DIAMOND SUIT
 };
 
+// Music notes
 enum {
-        EIGHT_NOTE,             // EIGHT NOTE
+        EIGHT_NOTE,     // EIGHT NOTE
         BEAMED_EIGHT,   // BEAMED EIGHTH NOTES
-        FLAT_SIGN,              // MUSIC FLAT SIGN
-        SHARP_SIGN              // MUSIC SHARP SIGN
+        FLAT_SIGN,      // MUSIC FLAT SIGN
+        SHARP_SIGN      // MUSIC SHARP SIGN
 };
 
+// Math symbols
 enum {
         M_PLUS_MINUS,           // PLUS-MINUS SIGN
         M_MULTIPLICATION,       // MULTIPLICATION SIGN
-        M_DIVISION,                     // DIVISION SIGN
-        M_FOR_ALL,                      // FOR ALL
+        M_DIVISION,             // DIVISION SIGN
+        M_FOR_ALL,              // FOR ALL
         M_DIFFERENTIAL,         // PARTIAL DIFFERENTIAL
-        M_NABLA,                        // NABLA
+        M_NABLA,                // NABLA
         M_ARY_PRODUCT,          // N-ARY PRODUCT
         M_ARY_SUMMATION,        // N-ARY SUMMATION
         M_MINUS_SIGN,           // MINUS SIGN
         M_MINUS_PLUS,           // MINUS-OR-PLUS SIGN
         M_SQUARE_ROOT,          // SQUARE ROOT
-        M_INFINITY,                     // INFINITY
+        M_INFINITY,             // INFINITY
         M_RIGHT_ANGLE,          // RIGHT ANGLE
         M_INTERSECTION,         // INTERSECTION
-        M_UNION,                        // UNION
-        M_INTERGAL,                     // INTERGAL
+        M_UNION,                // UNION
+        M_INTERGAL,             // INTERGAL
         M_ALMOST_EQUAL,         // ALMOST EQUAL TO
         M_NOT_EQUAL,            // NOT EQUAL TO
         M_INDENTICAL,           // IDENTICAL TO
         M_LESS_EQUAL,           // LESS-THAN OR EQUAL TO
         M_GREATER_EQUAL,        // GREATER-THAN OR EQUAL TO
-        M_UP_TACK                       // UP TACK
+        M_UP_TACK               // UP TACK
 };
-
+// Currency
 enum {
         C_CENT_SIGN,            // CENT SIGN
         C_POUND_SIGN,           // POUND SIGN
         C_CURRENCY_SIGN,        // CURRENTCY SIGN
-        C_YEN_SIGN,                     // YEN SIOGN
+        C_YEN_SIGN,             // YEN SIOGN
         C_EURO_SIGN,            // EURO SIGN
         C_RUPEE_SIGN,           // INDIAN RUPEE SIGN
         C_LIRA_SIGN,            // TURKISH LIRA SIGN
