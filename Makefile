@@ -16,12 +16,12 @@ ARC=libagui.a
 all: $(ARC)
 
 $(ARC): $(OBJS)
-    $(AR) -r $(ARC) $(OBJS)
+	$(AR) -r $(ARC) $(OBJS)
 
 $(OBJS): agui.c agui.h
 
 .c.o:
-    $(CC) $(CFLAGS) -c $< -o $@
+	$(CC) $(CFLAGS) -c $< -o $@
 
 clean:
-    rm -rf $(OBJS) $(ARC) test_agui
+	rm -rf $(OBJS) $(ARC) test_agui
