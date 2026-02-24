@@ -207,7 +207,7 @@ typedef struct {
     const char *description;
 } UnicodeChar;
 
-
+char *aguiVersion();
 void aguiSetColor(int fg, int bg);
 void aguiSetEffect(int effect);
 void aguiHomeCursor();
