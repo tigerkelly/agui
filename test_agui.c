@@ -17,9 +17,17 @@ int main(int argc, char *argv[]) {
     aguiClearScreen();
     aguiHideCursor();
 
+    aguiWindowTitle("AGUI SAMPLE");
+
     aguiMvText(2, 20, "Hello World !!!");
-        aguiBox(3, 20, 20, 10, true);
-        aguiBox(3, 50, 20, 10, false);
+    aguiBox(3, 20, 20, 10, true);
+    aguiHorizLine(5, 20, 21, true, true);
+    aguiVertLine(5, 26, 9, true, true);
+    aguiVertLine(5, 33, 9, true, true);
+    aguiBox(3, 50, 20, 10, false);
+    aguiHorizLine(5, 50, 21, false, true);
+    aguiVertLine(5, 56, 9, false, true);
+    aguiVertLine(5, 63, 9, false, true);
 
         aguiBoxTop(14, 20, 20, true);
         aguiBoxBottom(16, 20, 20, true);
