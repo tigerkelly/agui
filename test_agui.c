@@ -14,6 +14,10 @@
 
 int main(int argc, char *argv[]) {
 
+    printf("AGUI Version: %s\n", aguiVersion());
+
+    sleep(2);
+    
     aguiClearScreen();
     aguiHideCursor();
 
