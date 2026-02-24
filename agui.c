@@ -242,38 +242,64 @@ void aguiBoxBottom(int row, int col, int width, bool useSingleLine) {
         aguiMvText(r, c, "%s", u[BOTTOM_RIGHT].symbol);
 }
 
-void aguiHorizLine(int row, int col, int width, bool useSingleLine) {
-        int r = row;
-        int c = col;
+void aguiHorizLine(int row, int col, int width, bool useSingleLine, bool addEnds) {
+       int r = row;
+    int c = col;
 
-        UnicodeChar *u = NULL;
+    UnicodeChar *u = NULL;
 
-        if (useSingleLine == true)
-                u = single_line;
-        else
-                u = double_line;
+    if (useSingleLine == true)
+        u = single_line;
+    else
+        u = double_line;
 
-        for (int i = 0; i < width; i++) {
-                aguiMvText(r, c, "%s", u[HORIZ_LINE].symbol);
-                c++;
-        }
+    int i = 0;
+    if (addEnds == true) {
+        aguiMvText(r, c, "%s", u[LEFT_T].symbol);
+        i++;
+        width--;
+        c++;
+    }
+
+    for (; i < width; i++) {
+        aguiMvText(r, c, "%s", u[HORIZ_LINE].symbol);
+        c++;
+    }
+    if (addEnds == true) {
+        aguiMvText(r, c, "%s", u[RIGHT_T].symbol);
+        i++;
+        width--;
+    }
 }
 
-void aguiVertLine(int row, int col, int height, bool useSingleLine) {
+void aguiVertLine(int row, int col, int height, bool useSingleLine, bool addEnds) {
         int r = row;
-        int c = col;
+    int c = col;
 
-        UnicodeChar *u = NULL;
+    UnicodeChar *u = NULL;
 
-        if (useSingleLine == true)
-                u = single_line;
-        else
-                u = double_line;
+    if (useSingleLine == true)
+        u = single_line;
+    else
+        u = double_line;
 
-        for (int i = 0; i < height; i++) {
-                aguiMvText(r, c, "%s", u[VERT_LINE].symbol);
-                r++;
-        }
+    int i = 0;
+    if (addEnds == true) {
+        aguiMvText(r, c, "%s", u[TOP_T].symbol);
+        i++;
+        height--;
+        r++;
+    }
+
+    for (; i < height; i++) {
+        aguiMvText(r, c, "%s", u[VERT_LINE].symbol);
+        r++;
+    }
+    if (addEnds == true) {
+        aguiMvText(r, c, "%s", u[BOTTOM_T].symbol);
+        i++;
+        height--;
+    }
 }
 
 void aguiBlockBox(int row, int col, int width, int height, bool useHalfBlock) {
