@@ -76,6 +76,10 @@ void aguiSetEffect(int effect) {
     }
 }
 
+char *aguiVersion() {
+    return prgVersion;
+}
+
 // Home cursor
 void aguiHomeCursor() {
     printf("\033[H");
