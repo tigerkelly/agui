@@ -13,6 +13,7 @@
 #include "agui.h"
 
 int main(int argc, char *argv[]) {
+    RowCol rc;
 
     printf("AGUI Version: %s\n", aguiVersion());
 
@@ -132,11 +133,14 @@ int main(int argc, char *argv[]) {
         aguiCard(HEART);
         aguiCard(DIAMOND);
 
+    aguiCurrentPosition(&rc);
 
     getchar();
 
     aguiClearScreen();
     aguiHideCursor(false);
 
+    printf("Row %d, Col %d\n", rc.row, rc.col);
+    
     return 0;
 }
