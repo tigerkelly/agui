@@ -10,6 +10,8 @@ Be sure and set the configuration of putty session.
 Window->Translation->Remote Character set = UTF-8 and
 Check Window->Translation->Use Unicode linedrawing code points.
 
+Be sure to use a monospcae font type or boxes will not draw correctly.
+
 To make the agui library just type make.
 To compile the test_agui program see the comment at the top of the test_agui.c file.
 
