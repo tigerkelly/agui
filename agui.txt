@@ -1,0 +1,254 @@
+
+AGUI Documentation
+2026/02/25
+
+The agui library allows a programer to display text and graphic characters on a putty termainl.
+
+The agui library does not have widgets like textfield, buttons or other like widgets. I leave that to you.
+
+void aguiSetColor(int fg, int bg);
+    This sets the foreground and background colors. Pass the following:
+        COLOR_BLACK
+        COLOR_RED
+        COLOR_GREEN
+        COLOR_YELLOW
+        COLOR_BLUE
+        COLOR_MAGENTA
+        COLOR_CYAN
+        COLOR_WHITE
+        COLOR_BRIGHT_BLACK
+        COLOR_BRIGHT_RED
+        COLOR_BRIGHT_GREEN
+        COLOR_BRIGHT_YELLOW
+        COLOR_BRIGHT_BLUE
+        COLOR_BRIGHT_MAGENTA
+        COLOR_BRIGHT_CYAN
+        COLOR_BRIGHT_WHITE
+
+void aguiSetEffect(int effect);
+    This set the effect of the text.  Pass the following:
+        TEXT_BOLD
+        TEXT_DIM
+        TEXT_ITALIC
+        TEXT_UNDERLINE
+        TEXT_BLINKING
+        TEXT_REVERSE
+        TEXT_HIDDEN
+        TEXT_STRIKE
+        TEXT_DOUBLE
+        TEXT_NORMAL
+        TEXT_NOTITALIC
+        TEXT_NOTUNDERLINED
+        TEXT_NOTBLINKING
+        TEXT_NOTREVERSE
+        TEXT_NOTHIDDEN
+        TEXT_NOTSTRIKE
+
+char *aguiVersion();
+    Returns the current version of the agui library.
+
+void aguiHomeCursor()
+    This homes the cursor, top left.
+
+void aguiClearScreen();
+    This clears the screen.
+
+void aguiClearEol();
+    This clears from current sursor position to end of line.
+
+void aguiMvClearEol(int row, int col);
+    This moves the cursro ro row/col and then clears to end of line.
+
+void aguiBlinkCursor(bool onOff);
+    This causes the cursor to blink if onOff is true else turns it off.
+
+void aguiForward(int numCols);
+    This moves the cursor forward numCols.
+
+void aguiBackward(int numCols);
+    Thsi moves the cirsor backward numCols.
+
+void aguiMvColumn(int colNum);
+    This moves the cursor to the colNum position.
+
+void aguiMvUp(int numLines);
+    This move the cursor up numLines.
+
+void aguiMvDown(int numLines);
+    This move the cursor down numLines.
+
+void aguiHideCursor(bool cursorOff);
+    This hides the cursor if cursorOff is true else unhides cursor.
+
+void aguiClearEos()
+    This clears from the current cursor position to end of screen.
+
+void aguiMvClearEoS(int row, int col);
+    This moves the cursor to position row/col and then clears to end of screen.
+
+void aguiClarBoS();
+    This clear from the current cursor position to the beginning of the screen.
+
+void aguiMvCursor(int row, int col);
+    This moves the cursor to row/col.
+
+void aguiSaveCursor();
+    This saves the curosr position for recall later.
+
+void aguiRestoreCursor();
+    This moves the cursor back to the saved cursor position.
+
+void aguiRestAllAttrib();
+    This resets all attributes thier default.
+
+void aguiScrollUp(int numLines);
+    This scrolls the screen up numlines.
+
+void aguiScrollDown(int numLines);
+    This scrolls the screen down numLines.
+
+void aguiWindowTitle(char *title);
+    This adds text to the title bar of the putty screen.
+
+void aguiCurrentPosition(RowCol *rc);
+    This retrives the current cursor position and places the results into the RowCol structure.
+
+void aguiMvText(int row, int col, char *txt, ...);
+    This adds text to the screen at position row/col.
+    This function uses a variable length arguments, just like printf uses.
+
+void aguiSetAll(int fg, int bg, int effect);
+    This allows the user to set foreground, background and text effect in one function.
+
+void aguiBox(int row, int col, int width, int height, bool useSingleLine);
+    This draws a graphic box at cursor position defined by row/col. If the useSingleLine
+    id true then box is draw using the single line graphics instead of the double lines.
+
+void aguiBoxTop(int row, int col, int width, bool useSingleLine);
+    This draws the top part of the box with corners. The useSingleLine flag is used to
+    select either single of double line graphics.
+
+void aguiBoxBottom(int row, int col, int width bool useSingleLine);
+    This draw the bottom part of a box with corners. The useSingleLine flag is used to
+    select either single of double line graphics.
+
+void aguiHorizLine(int row, int col, int width, bool useSingleLine, bool addEnds);
+    This draw a horizantal line ar row/col for width length. The addEnds if true will
+    draw a left and right tee graphic a the beginning and end of line.
+
+void aguiVertLine(int row, int col, int height, bool useSingleLine, bool addEnds)l
+    This draws a vertical line in ethier double of single line graphics and based on the
+    addEnds flag controls whether the top and bottom or draw.
+
+void aguiBlockBox(int row, int col, int width, int height, bool useHalfBlock);
+    This draw a box using the block or half block character.
+
+void aguiBoxLeft(int row, int col, int height, bool useSingleLine);
+    This draws the left side of a box in either single or double grpahics.
+
+void aguiBoxRight(int row, int col, int height, bool useSingleLine);
+    This draws the right side of a box in either single or double grpahics.
+
+void aguiMvShape(int ro, int col, int shape);
+    This draw a shape at row/col position.  Ths shapes are:
+        B_SQUARE
+        W_SQUARE
+        S_B_SQUARE
+        S_W_SQUARE
+        B_RECTANGLE
+        B_UP_TRIANGLE
+        W_UP_TRIANGLE
+        B_RIGHT_TRIANGLE
+        W_DOWN_TRIANGLE
+        B_LEFT_TRIANGLE
+        W_LEFT_TRIANGLE
+        B_DIAMOND
+        W_DIAMOND
+        LOZENGE
+        W_CIRCLE
+        D_CIRCLE
+        BULLSEYE
+        B_CIRCLE
+        INVERSE_BULLET
+        INVERSE_W_CIRCLE
+        W_BULLET
+
+void aguiShape(int shape);
+    The same as aguiMvShape but doe snot move the cursor.  See the aguiMvShape fomr the value of
+    the shape argument.
+
+void aguiMvArrow(int row, int col, int arrow);
+    This draws an arrow at the cursor position row/col.  The arrows are:
+        LEFT_ARROW
+        UP_ARROW
+        RIGHT_ARROW
+        DOWN_ARROW
+        LEFT_RIGHT_ARROW
+        UP_DOWN_ARROW
+
+void aguiArrow(int arrow);
+    This draws the arrow at the current curosr position.  See aguiMvArrow for the value of arrow.
+
+void aguiMvCard(int row, int col, int card);
+    This draws either a spade,club,diamond or heart at cursor position row/col. The cards are:
+        SPADE
+        CLUB
+        DIAMOND
+        HEART
+
+void aguiCard(int card);
+    This draws a card at the current position. See aguiMvCard for card value.
+
+void aguiMvMusic(int row, int col, int note);
+    This draws a music note at position row/col. The music notes are:
+        EIGHT_NOTE
+        BEAMED_EIGHT
+        FLAT_SIGN
+        SHARP_SIGN
+
+void aguiMusic(int note);
+    This draws a musical note at current position. See aguiMvMusic for valu eof note.
+
+void aguiMvMath(int row, int col, int symbol);
+    This draws a math symbol at position row/col. The symbols are:
+        M_PLUS_MINUS
+        M_MULTIPLICATION
+        M_DIVISION
+        M_FOR_ALL
+        M_DIFFERENTIAL
+        M_NABLA
+        M_ARY_PRODUCT
+        M_ARY_SUMMATION
+        M_MINUS_SIGN
+        M_MINUS_PLUS
+        M_SQUARE_ROOT
+        M_INFINITY
+        M_RIGHT_ANGLE
+        M_INTERSECTION
+        M_UNION
+        M_INTERGAL
+        M_ALMOST_EQUAL
+        M_NOT_EQUAL
+        M_INDENTICAL
+        M_LESS_EQUAL
+        M_GREATER_EQUAL
+        M_UP_TACK
+
+void aguiMath(int symbol);
+    This draws a math symbol at the current position.  See aguiMvMath for valu eof symbol.
+
+void aguiMvCurrency(int row, int col, int sign);
+    This draws a currency sign at row/col. The currency signs are:
+        C_CENT_SIGN
+        C_POUND_SIGN
+        C_CURRENCY_SIGN
+        C_YEN_SIGN
+        C_EURO_SIGN
+        C_RUPEE_SIGN
+        C_LIRA_SIGN
+        C_RUBLE_SIGN
+        C_BITCOIN_SIGN
+
+void aguiCurrency(int sign);
+    This draws a currency symbol at current postion. See aguiMvCurrency for sign values.
+
