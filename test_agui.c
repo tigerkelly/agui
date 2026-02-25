@@ -19,7 +19,7 @@ int main(int argc, char *argv[]) {
     sleep(2);
     
     aguiClearScreen();
-    aguiHideCursor();
+    aguiHideCursor(true);
 
     aguiWindowTitle("AGUI SAMPLE");
 
@@ -136,7 +136,7 @@ int main(int argc, char *argv[]) {
     getchar();
 
     aguiClearScreen();
-    aguiUnhideCursor();
+    aguiHideCursor(false);
 
     return 0;
 }
