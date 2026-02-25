@@ -96,12 +96,10 @@ void aguiMvClearEol(int row, int col) {
 }
 
 // Enable blinking cursor
-void aguiBlinkCursor() {
+void aguiBlinkCursor(bool onOff) {
+    if (onOff == true)
         printf("\033[?12h");
-}
-
-// Disable blinking cursor
-void aguiUnblinkCursor() {
+    else
         printf("\033[?12l");
 }
 
@@ -138,13 +136,11 @@ void aguiClearEol() {
 }
 
 // Hide cursor
-void aguiHideCursor() {
-    printf("\033[?25l");
-}
-
-// unhide cursor
-void aguiUnhideCursor() {
-    printf("\033[?25h");
+void aguiHideCursor(bool cursorOff) {
+    if (cursorOff == true)
+        printf("\033[?25l");
+    else
+        printf("\033[?25h");
 }
 
 // Move cursor
