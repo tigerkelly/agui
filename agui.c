@@ -441,3 +441,23 @@ void aguiMvCurrency(int row, int col, int sign) {
 void aguiCurrency(int sign) {
         printf("%s", currency_symbols[sign].symbol);
 }
+
+void aguiMvInsertChar(int row, int col, int numChars) {
+    aguiMvCursor(row, col);
+    printf("\033[{%d}I", numChars);
+}
+
+void aguiMvDeleteChar(int row, int col, int numChars) {
+    aguiMvCursor(row, col);
+    printf("\033[{%d}P", numChars);
+}
+
+void aguiMvInsertLine(int row, int col, int numLines) {
+    aguiMvCursor(row, col);
+    printf("\033[{%d}L", numLines);
+}
+
+void aguiMvDeleteLine(int row, int col, int numLines) {
+    aguiMvCursor(row, col);
+    printf("\033[{%d}M", numLines);
+}
