@@ -244,5 +244,9 @@ void aguiMath(int symbol);
 void aguiMvMath(int row, int col, int symbol);
 void aguiCurrency(int sign);
 void aguiMvCurrency(int row, int col, int sign);
+void aguiMvInsertChar(int row, int col, int numChars);
+void aguiMvDeleteChar(int row, int col, int numChars);
+void aguiMvInsertLine(int row, int col, int numLines);
+void aguiMvDeleteLine(int row, int col, int numLines);
 
 #endif
