@@ -252,3 +252,14 @@ void aguiMvCurrency(int row, int col, int sign);
 void aguiCurrency(int sign);
     This draws a currency symbol at current postion. See aguiMvCurrency for sign values.
 
+void aguiMvInsertChar(int row, int col, int numChars);
+    This inserts blank characters at the give row/col.
+
+void aguiMvDeleteChar(int row, int col, int numChars);
+    This deletes characters at the given row/col.
+
+void aguiMvInsertLine(int row, int col, int numLines);
+    This inserts lines at the given row/col.
+
+void aguiMvDeleteLine(int row, int col, int numLines);
+    This deletes lines at the given row/col.
