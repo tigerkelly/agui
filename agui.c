@@ -13,6 +13,15 @@
 
 #include "chartable.c"
 
+char *prgVersion = "1.0.0";
+
+int currRow = 0;
+int currCol = 0;
+
+RowCol _savedCursor;
+
+extern char *trimWhiteSpace(char *str);
+
 // Set fg and bg color.
 void aguiSetColor(int fg, int bg) {
     switch (fg) {

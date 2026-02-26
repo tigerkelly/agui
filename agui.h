@@ -200,6 +200,14 @@ enum {
         C_BITCOIN_SIGN          // BITCOIN SIGN
 };
 
+typedef struct {
+    int row;
+    int col;
+} RowCol;
+
+extern int currRow;
+extern int currCol;
+
 // Box Drawing Characters - Single Line
 typedef struct {
     wchar_t code;
@@ -229,8 +237,8 @@ void aguiBoxTop(int row, int col, int width, bool useSingleLine);
 void aguiBoxBottom(int row, int col, int width, bool useSingleLine);
 void aguiBoxLeft(int row, int col, int height, bool useSingleLine);
 void aguiBoxRight(int row, int col, int height, bool useSingleLine);
-void aguiHorizLine(int row, int col, int width, bool useSingleLine);
-void aguiVertLine(int row, int col, int height, bool useSingleLine);
+void aguiHorizLine(int row, int col, int width, bool useSingleLine, bool addEnds);
+void aguiVertLine(int row, int col, int height, bool useSingleLine, bool addEnds);
 void aguiBlockBox(int row, int col, int width, int height, bool useHalfBlock);
 void aguiShape(int shape);
 void aguiMvShape(int row, int col, int shape);
