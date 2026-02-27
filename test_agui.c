@@ -40,11 +40,17 @@ int main(int argc, char *argv[]) {
         aguiBoxTop(14, 50, 20, false);
         aguiBoxBottom(16, 50, 20, false);
 
-        aguiHorizLine(24, 50, 20, true);
-        aguiHorizLine(25, 50, 20, false);
+		aguiHorizLine(20, 50, 20, true, true);
+		aguiHorizLine(22, 50, 20, false, true);
 
-        aguiVertLine(4, 5, 10, true);
-        aguiVertLine(4, 8, 10, false);
+		aguiHorizLine(24, 50, 20, true, false);
+		aguiHorizLine(25, 50, 20, false, false);
+
+		aguiVertLine(4, 5, 10, true, true);
+		aguiVertLine(4, 8, 10, false, true);
+
+		aguiVertLine(4, 10, 10, true, false);
+		aguiVertLine(4, 12, 10, false, false);
 
         aguiBlockBox(25, 20, 10, 8, true);
         aguiBlockBox(25, 5, 10, 8, false);
