@@ -290,6 +290,34 @@ void aguiBox(int row, int col, int width, int height, bool useSingleLine) {
     currCol = col;
 }
 
+#if(0)
+void aguiBoxCharLeft(int row, int col, bool useSingleLine) {
+	UnicodeChar *u = NULL;
+
+    if (useSingleLine == true)
+        u = single_line;
+    else
+        u = double_line;	
+	
+	aguiMvText(row, col, "%s", u[HORIZ_LINE].symbol);
+    currRow = row;
+    currCol = col;
+}
+
+void aguiBoxRight(int row, int col, bool useSingleLine) {
+	UnicodeChar *u = NULL;
+
+    if (useSingleLine == true)
+        u = single_line;
+    else
+        u = double_line;	
+	
+	aguiMvText(row, col, "%s", u[HORIZ_LINE].symbol);
+    currRow = row;
+    currCol = col;
+}
+#endif
+
 void aguiBoxTop(int row, int col, int width, bool useSingleLine) {
     int r = row;
     int c = col;
@@ -448,6 +476,40 @@ void aguiBlockBox(int row, int col, int width, int height, bool useHalfBlock) {
         aguiMvText(r, c, "%s", block_elements[BLK_FULL].symbol);
     }
 
+}
+
+// Draw a single Horiz line at row/col.
+void aguiBoxHoriz(int row, int col, bool useSingleLine) {
+	int r = row;
+    currRow = row;
+    currCol = col;
+
+    UnicodeChar *u = NULL;
+
+    if (useSingleLine == true) {
+        u = single_line;
+    } else {
+        u = double_line;
+    }
+
+    aguiMvText(r++, col, "%s", u[D_HORIZ_LINE].symbol);
+}
+
+// Draw a single vertical line at row/col
+void aguiBoxVert(int row, int col, bool useSingleLine) {
+	int r = row;
+    currRow = row;
+    currCol = col;
+
+    UnicodeChar *u = NULL;
+
+    if (useSingleLine == true) {
+        u = single_line;
+    } else {
+        u = double_line;
+    }
+
+    aguiMvText(r++, col, "%s", u[D_VERT_LINE].symbol);
 }
 
 void aguiBoxLeft(int row, int col, int height, bool useSingleLine) {
