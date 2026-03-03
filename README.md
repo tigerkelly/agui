@@ -10,7 +10,7 @@ Be sure and set the configuration of putty session.
 Window->Translation->Remote Character set = UTF-8 and
 Check Window->Translation->Use Unicode linedrawing code points.
 
-Be sure to use a monospcae font type or boxes will not draw correctly.
+Be sure to use a monospace font type or boxes will not draw correctly.
 
 I have added a drawing program to help with screen layout called adraw.
 
