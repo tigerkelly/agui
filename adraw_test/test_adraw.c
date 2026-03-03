@@ -21,7 +21,7 @@ int main(int argc, char *argv[]) {
     aguiClearScreen();
     aguiHideCursor(true);
 
-	loadScreen("nmsstat.agui");
+	aguiLoadScreen("nmsstat.agui");
 
     getchar();
 

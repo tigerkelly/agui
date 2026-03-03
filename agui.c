@@ -659,7 +659,7 @@ void aguiScreenSize(RowCol *rc) {
 }
 
 // Returns zero on success.
-int aguiloadScreen(char *screenName) {
+int aguiLoadScreen(char *screenName) {
 	if (access(screenName, F_OK) != 0) {
 		return 1;
 	}
