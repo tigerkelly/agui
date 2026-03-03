@@ -24,6 +24,10 @@ To compile the test_agui program cd to agui_test and type make
 
 To compile the test_adraw program cd to adraw_test and type make
 
+On a RPI 4 you will need to install the ncurses and wide character libraries.
+
+sudo apt install -y libncurses-dev libncursesw-dev
+
 To compile the adraw program cd to adraw and type make
 
 
