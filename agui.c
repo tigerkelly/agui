@@ -8,6 +8,7 @@
 #include <unistd.h>
 #include <stdarg.h>
 #include <string.h>
+#include <sys/ioctl.h>
 
 #include "agui.h"
 
@@ -17,6 +18,8 @@ char *prgVersion = "1.0.0";
 
 int currRow = 0;
 int currCol = 0;
+int screenRows = 0;
+int screenCols = 0;
 
 RowCol _savedCursor;
 
@@ -645,4 +648,46 @@ void aguiMvDeleteLine(int row, int col, int numLines) {
     printf("\033[{%d}M", numLines);
     currRow = row;
     currCol = col;
+}
+
+void aguiScreenSize(RowCol *rc) {
+	struct winsize w;
+    ioctl(STDOUT_FILENO, TIOCGWINSZ, &w);
+
+	rc->row = w.ws_row;
+	rc->col = w.ws_col;
+}
+
+int loadScreen(char *screenName) {
+	if (access(screenName, F_OK) != 0) {
+		return 1;
+	}
+
+	RowCol rc;
+
+	aguiScreenSize(&rc);
+	if (rc.row > 0)
+		rc.row--;
+
+	// aguiMvText(10, 10, "row %d, col %d\n", rc.row, rc.col);
+	// getchar();
+
+	FILE *f = fopen(screenName, "rb");
+	if (f != NULL) {
+		char line[256];
+
+		int count = 0;
+		while (fgets(line, sizeof(line), f) != NULL) {
+			if (strncmp(line, "#@", 2) == 0)
+				continue;
+			printf("%s", line);
+
+			if (++count >= rc.row)
+				break;
+		}
+
+		fclose(f);
+	}
+
+	return 0;
 }

@@ -223,6 +223,7 @@ void aguiClearScreen();
 void aguiMvClearEol(int row, int col);
 void aguiClearEol();
 void aguiHideCursor(bool cursorOff);
+void aguiScreenSize(RowCol *rc);
 void aguiMvCursor(int row, int col);
 void aguiMvText(int row, int col, char *txt, ...);
 void aguiSetAll(int fg, int bg, int effect);
@@ -269,5 +270,6 @@ void aguiMvInsertChar(int row, int col, int numChars);
 void aguiMvDeleteChar(int row, int col, int numChars);
 void aguiMvInsertLine(int row, int col, int numLines);
 void aguiMvDeleteLine(int row, int col, int numLines);
+int loadScreen(char *screenNmae);
 
 #endif

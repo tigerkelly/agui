@@ -51,6 +51,12 @@ Module.symvers
 Mkfile.old
 dkms.conf
 test_agui
+test_adraw
+adraw
+old
+kw.c
+kw2.c
+kw3.c
 
 # debug information files
 *.dwo
