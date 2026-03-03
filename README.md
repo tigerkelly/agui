@@ -28,7 +28,7 @@ On a RPI 4 you will need to install the ncurses and wide character libraries.
 
 sudo apt install -y libncurses-dev libncursesw-dev
 
-To compile the adraw program cd to adraw and type make
+To compile the adraw program cd to adraw_prg and type make
 
 
 I wrote this library to help display network statics in a putty terminal.  At some point I may make the Netowrk Monitor System avaiiable.
