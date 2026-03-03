@@ -658,7 +658,8 @@ void aguiScreenSize(RowCol *rc) {
 	rc->col = w.ws_col;
 }
 
-int loadScreen(char *screenName) {
+// Returns zero on success.
+int aguiloadScreen(char *screenName) {
 	if (access(screenName, F_OK) != 0) {
 		return 1;
 	}
@@ -687,6 +688,8 @@ int loadScreen(char *screenName) {
 		}
 
 		fclose(f);
+	} else {
+		return 2;
 	}
 
 	return 0;

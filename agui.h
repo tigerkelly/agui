@@ -270,6 +270,6 @@ void aguiMvInsertChar(int row, int col, int numChars);
 void aguiMvDeleteChar(int row, int col, int numChars);
 void aguiMvInsertLine(int row, int col, int numLines);
 void aguiMvDeleteLine(int row, int col, int numLines);
-int loadScreen(char *screenNmae);
+int aguiLoadScreen(char *screenNmae);
 
 #endif
