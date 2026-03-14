@@ -44,6 +44,14 @@
 #define MAX_FILENAME 256
 #define PANEL_W      32      /* side panel width including border */
 
+#define H_DIR       'H'
+#define V_DIR       'V'
+#define U_DIR       'U'		// unused in the object type.
+
+#define D_GRAPH     'D'		// double line graphics
+#define S_GRAPH     'S'		// single line graphics
+#define U_GRAPH     'U'		// unsed in the object type.
+
 /* ── UTF-8 box-drawing sequences ───────────────────────────────── */
 /* single line */
 static const char U_UL[] = "\xe2\x94\x8c";  /* ┌ */
@@ -60,13 +68,12 @@ static const char D_LR[] = "\xe2\x95\x9d";  /* ╝ */
 static const char D_HZ[] = "\xe2\x95\x90";  /* ═ */
 static const char D_VT[] = "\xe2\x95\x91";  /* ║ */
 
-#define BSTYLE_SINGLE 0
-#define BSTYLE_DOUBLE 1
-
 #define CSIZ 5   /* max UTF-8 bytes per cell + NUL */
 #define GCELL(r,c)  (grid + ((size_t)((r)*cols+(c))*CSIZ))
 #define GSET(r,c,s) do { if((r)>=0&&(r)<gr&&(c)>=0&&(c)<cols) \
                          strncpy(GCELL(r,c),(s),CSIZ-1); } while(0)
+
+char *types[] = { "Box", "Text", "Glyph", "Line" };
 
 typedef enum { OBJ_BOX, OBJ_TEXT, OBJ_GLYPH, OBJ_LINE } ObjType;
 
@@ -75,8 +82,8 @@ typedef struct {
     int x, y, w, h;
     char text[MAX_TEXT];
     int  color;
-    int  box_style;
 	int  line_dir;   /* 0=horizontal 1=vertical */
+    int  box_style;
     int  active;
 } Object;
 
@@ -84,7 +91,7 @@ static Object objects[MAX_OBJECTS];
 static int    num_objects = 0;
 static int    cur_x = 0, cur_y = 0;
 static int    cur_color  = 7;
-static int    cur_bstyle = BSTYLE_SINGLE;
+static int    cur_bstyle = S_GRAPH;
 
 typedef enum {
     STATE_NORMAL,
@@ -99,9 +106,9 @@ FILE *logfd = NULL;
 
 static AppState state    = STATE_NORMAL;
 static int box_sx, box_sy;
-static int line_sx, line_sy;  /* line start anchor */
-static int line_dir_cur = 0;   /* 0=horiz 1=vert */
-static int line_dbl_cur = 0;   /* 0=single 1=double */
+static int line_sx, line_sy;		/* line start anchor */
+static int line_dir_cur = H_DIR;	/* 0=horiz 1=vert */
+static int line_dbl_cur = S_GRAPH;  /* 0=single 1=double */
 static int selected      = -1;
 static int move_off_x, move_off_y;
 static int cpick_idx     = 0;
@@ -112,6 +119,16 @@ static int dirty         = 0;  /* 1 = unsaved changes exist */
 
 /* Short feedback message shown in the panel */
 static char status_msg[128] = "Ready";
+
+char *strqtok (char *s1, const char *s2);
+int qparse(char *str, const char *chrs, char **argz, int max_argz);
+char *trim_tail(char *str);
+char *trim_head(char *str);
+char *trim_chars(char *str, char *chrs);
+char *trim_head_chars(char *str, char *chrs);
+char *trim_tail_chars(char *str, char *chrs);
+char *trim(char *str);
+int parse(char *str, const char *chrs, char **argz, int max_argz);
 
 /* ── color tables ──────────────────────────────────────────────── */
 static const int         color_ids[7] = {
@@ -238,251 +255,38 @@ static int canvas_cols(void) {
 }
 
 /* ── draw a line object ────────────────────────────────────────── */
-static void draw_line_obj(int x, int y, int len, int dir, int dbl, int color, int hi) {
-    if (len < 1) return;
-    int pair = hi ? (color + 10) : color;
-    attron(COLOR_PAIR(pair));
+static void draw_line_obj(int x, int y, int len, int dir, int dbl, int color) {
+    if (len < 1)
+		return;
+    // int pair = hi ? (color + 10) : color;
+    // attron(COLOR_PAIR(pair));
 
-    if (dir == 0) {
+    if (dir == H_DIR) {
         /* horizontal — build the whole line as one string, single mvaddstr */
-        const char *ch = dbl ? D_HZ : U_HZ;
+        const char *ch = dbl==D_GRAPH ? D_HZ : U_HZ;
         char *buf = malloc((size_t)len * 3 + 1);
-        if (!buf) { attroff(COLOR_PAIR(pair)); return; }
-        for (int i = 0; i < len; i++) memcpy(buf + i*3, ch, 3);
+        if (!buf) {
+			// attroff(COLOR_PAIR(pair));
+			return;
+		}
+        for (int i = 0; i < len; i++) {
+			memcpy(buf + i*3, ch, 3);
+		}
         buf[len*3] = '\0';
         mvaddstr(y, x, buf);
         free(buf);
     } else {
         /* vertical — one mvaddstr per cell (each already at a fresh position) */
-        const char *ch = dbl ? D_VT : U_VT;
-        for (int i = 0; i < len; i++)
+        const char *ch = dbl==D_GRAPH ? D_VT : U_VT;
+        for (int i = 0; i < len; i++) {
             mvaddstr(y + i, x, ch);
+		}
     }
-    attroff(COLOR_PAIR(pair));
-}
-
-/* ── junction rendering ────────────────────────────────────────── */
-/*
- * At any cell (x,y) multiple line/box edges may meet. We compute which
- * of the four directions (L R U D) carry a stroke and whether each is
- * single (0) or double (1), then look up the Unicode box-drawing char.
- *
- * stroke_info: per-direction: bit0 = present, bit1 = double
- *   index: 0=L 1=R 2=U 3=D
- */
-
-/* Return stroke info (0=none,1=single,3=double) for one direction at (x,y)
-   contributed by object idx (pass -1 to check all objects). */
-static int cell_stroke(int x, int y, int dir, int only_idx) {
-    /* dir: 0=L 1=R 2=U 3=D  — does this cell have a stroke going that way? */
-    int result = 0;
-    int start = (only_idx >= 0) ? only_idx : 0;
-    int end   = (only_idx >= 0) ? only_idx+1 : num_objects;
-
-    for (int i = start; i < end; i++) {
-        Object *o = &objects[i];
-        if (!o->active) continue;
-        int dbl = (o->box_style == BSTYLE_DOUBLE) ? 2 : 1;
-
-        if (o->type == OBJ_LINE) {
-            if (o->line_dir == 0) {  /* horizontal line */
-                if (y != o->y) continue;
-                if (x < o->x || x >= o->x + o->w) continue;
-                /* this cell is ON a horizontal line */
-                if (dir == 0 && x > o->x)            result |= dbl; /* L */
-                if (dir == 1 && x < o->x + o->w - 1) result |= dbl; /* R */
-            } else {                  /* vertical line */
-                if (x != o->x) continue;
-                if (y < o->y || y >= o->y + o->w) continue;
-                /* this cell is ON a vertical line */
-                if (dir == 2 && y > o->y)            result |= dbl; /* U */
-                if (dir == 3 && y < o->y + o->w - 1) result |= dbl; /* D */
-            }
-        } else if (o->type == OBJ_BOX) {
-            int x1=o->x, y1=o->y, x2=o->x+o->w-1, y2=o->y+o->h-1;
-            /* top edge */
-            if (y == y1 && x >= x1 && x <= x2) {
-                if (dir == 0 && x > x1)  result |= dbl;
-                if (dir == 1 && x < x2)  result |= dbl;
-            }
-            /* bottom edge */
-            if (y == y2 && x >= x1 && x <= x2) {
-                if (dir == 0 && x > x1)  result |= dbl;
-                if (dir == 1 && x < x2)  result |= dbl;
-            }
-            /* left edge */
-            if (x == x1 && y >= y1 && y <= y2) {
-                if (dir == 2 && y > y1)  result |= dbl;
-                if (dir == 3 && y < y2)  result |= dbl;
-            }
-            /* right edge */
-            if (x == x2 && y >= y1 && y <= y2) {
-                if (dir == 2 && y > y1)  result |= dbl;
-                if (dir == 3 && y < y2)  result |= dbl;
-            }
-        }
-    }
-    return result;
-}
-
-/*
- * junction_utf8: given stroke presence/weight for L R U D
- *   (0=none, 1=single, 2=double), return the UTF-8 box-drawing char.
- * We encode the four directions as a 4-digit base-3 number: L*27+R*9+U*3+D
- */
-static const char *junction_utf8(int L, int R, int U, int D) {
-    /* clamp to 0/1/2 */
-    if (L>2)L=2; if (R>2)R=2; if (U>2)U=2; if (D>2)D=2;
-
-    /* Only render a junction char when at least two directions are active */
-    int count = (L>0)+(R>0)+(U>0)+(D>0);
-    if (count < 2) return NULL;
-
-    /* --- All-single junctions --- */
-    if (L==1&&R==1&&U==0&&D==0) return U_HZ;   /* ─ */
-    if (L==0&&R==0&&U==1&&D==1) return U_VT;   /* │ */
-    if (L==0&&R==1&&U==0&&D==1) return U_UL;   /* ┌ */
-    if (L==1&&R==0&&U==0&&D==1) return "\xe2\x94\x90"; /* ┐ */
-    if (L==0&&R==1&&U==1&&D==0) return "\xe2\x94\x94"; /* └ */
-    if (L==1&&R==0&&U==1&&D==0) return "\xe2\x94\x98"; /* ┘ */
-    if (L==1&&R==1&&U==0&&D==1) return "\xe2\x94\xac"; /* ┬ */
-    if (L==1&&R==1&&U==1&&D==0) return "\xe2\x94\xb4"; /* ┴ */
-    if (L==0&&R==1&&U==1&&D==1) return "\xe2\x94\x9c"; /* ├ */
-    if (L==1&&R==0&&U==1&&D==1) return "\xe2\x94\xa4"; /* ┤ */
-    if (L==1&&R==1&&U==1&&D==1) return "\xe2\x94\xbc"; /* ┼ */
-
-    /* --- All-double junctions --- */
-    if (L==2&&R==2&&U==0&&D==0) return D_HZ;
-    if (L==0&&R==0&&U==2&&D==2) return D_VT;
-    if (L==0&&R==2&&U==0&&D==2) return D_UL;   /* ╔ */
-    if (L==2&&R==0&&U==0&&D==2) return D_UR;   /* ╗ */
-    if (L==0&&R==2&&U==2&&D==0) return D_LL;   /* ╚ */
-    if (L==2&&R==0&&U==2&&D==0) return D_LR;   /* ╝ */
-    if (L==2&&R==2&&U==0&&D==2) return "\xe2\x95\xa6"; /* ╦ */
-    if (L==2&&R==2&&U==2&&D==0) return "\xe2\x95\xa9"; /* ╩ */
-    if (L==0&&R==2&&U==2&&D==2) return "\xe2\x95\xa0"; /* ╠ */
-    if (L==2&&R==0&&U==2&&D==2) return "\xe2\x95\xa3"; /* ╣ */
-    if (L==2&&R==2&&U==2&&D==2) return "\xe2\x95\xac"; /* ╬ */
-
-    /* --- Mixed single/double junctions --- */
-    /* single-H crosses double-V */
-    if (L==1&&R==1&&U==2&&D==2) return "\xe2\x95\xab"; /* ╫ */
-    if (L==1&&R==1&&U==2&&D==0) return "\xe2\x95\xa8"; /* ╨ */
-    if (L==1&&R==1&&U==0&&D==2) return "\xe2\x95\xa5"; /* ╥ */
-    /* double-H crosses single-V */
-    if (L==2&&R==2&&U==1&&D==1) return "\xe2\x95\xaa"; /* ╪ */
-    if (L==2&&R==2&&U==1&&D==0) return "\xe2\x95\xa7"; /* ╧ */
-    if (L==2&&R==2&&U==0&&D==1) return "\xe2\x95\xa4"; /* ╤ */
-    /* single-H meets double-V (T junctions) */
-    if (L==0&&R==1&&U==2&&D==2) return "\xe2\x95\x9e"; /* ╞ */
-    if (L==1&&R==0&&U==2&&D==2) return "\xe2\x95\xa1"; /* ╡ */
-    /* double-H meets single-V */
-    if (L==2&&R==0&&U==1&&D==1) return "\xe2\x95\x95"; /* ╕ */
-    if (L==0&&R==2&&U==1&&D==1) return "\xe2\x95\x92"; /* ╒ */
-    /* corners: single meets double */
-    if (L==0&&R==1&&U==0&&D==2) return "\xe2\x95\x93"; /* ╓ */
-    if (L==1&&R==0&&U==0&&D==2) return "\xe2\x95\x96"; /* ╖ */
-    if (L==0&&R==1&&U==2&&D==0) return "\xe2\x95\x99"; /* ╙ */
-    if (L==1&&R==0&&U==2&&D==0) return "\xe2\x95\x9c"; /* ╜ */
-    if (L==0&&R==2&&U==0&&D==1) return "\xe2\x95\x92"; /* ╒ */
-    if (L==2&&R==0&&U==0&&D==1) return "\xe2\x95\x95"; /* ╕ */
-    if (L==0&&R==2&&U==1&&D==0) return "\xe2\x95\x98"; /* ╘ */
-    if (L==2&&R==0&&U==1&&D==0) return "\xe2\x95\x9b"; /* ╛ */
-
-    /* fallback: just use single or double based on majority */
-    int sdbl = (L==2||R==2||U==2||D==2);
-    if (L&&R&&!U&&!D) return sdbl ? D_HZ : U_HZ;
-    if (!L&&!R&&U&&D) return sdbl ? D_VT : U_VT;
-    return sdbl ? "\xe2\x95\xac" : "\xe2\x94\xbc";
-}
-
-/*
- * After all objects are drawn, scan every cell that is a potential
- * junction (where ≥2 objects contribute strokes) and overdraw with the
- * correct combined character.
- */
-static void draw_junctions(void) {
-    int rows, cols_total;
-    getmaxyx(stdscr, rows, cols_total);
-    int cw = cols_total - PANEL_W;
-
-    /* Collect all cells that belong to any line or box border */
-    /* We iterate over all pairs of objects and check their overlap cells */
-    for (int i = 0; i < num_objects; i++) {
-        Object *oi = &objects[i];
-        if (!oi->active) continue;
-        if (oi->type != OBJ_LINE && oi->type != OBJ_BOX) continue;
-
-        /* Determine the set of cells this object contributes */
-        int x0,y0,x1,y1;
-        if (oi->type == OBJ_LINE) {
-            x0 = oi->x; y0 = oi->y;
-            if (oi->line_dir == 0) { x1 = oi->x+oi->w-1; y1 = oi->y; }
-            else                   { x1 = oi->x;          y1 = oi->y+oi->w-1; }
-        } else { /* BOX: only border cells */
-            x0 = oi->x; y0 = oi->y;
-            x1 = oi->x+oi->w-1; y1 = oi->y+oi->h-1;
-        }
-
-        /* Walk border cells of this object */
-        int cx, cy;
-        for (int pass = 0; pass < (oi->type==OBJ_BOX ? 4 : 1); pass++) {
-            /* pass 0=horiz scan, pass 1=vert scan for lines;
-               pass 0=top,1=bottom,2=left,3=right for boxes */
-            int lx0,lx1,ly0,ly1;
-            if (oi->type == OBJ_LINE) {
-                lx0=x0; lx1=x1; ly0=y0; ly1=y1;
-            } else {
-                if      (pass==0){lx0=x0;lx1=x1;ly0=y0;ly1=y0;}
-                else if (pass==1){lx0=x0;lx1=x1;ly0=y1;ly1=y1;}
-                else if (pass==2){lx0=x0;lx1=x0;ly0=y0;ly1=y1;}
-                else             {lx0=x1;lx1=x1;ly0=y0;ly1=y1;}
-            }
-            for (cy=ly0; cy<=ly1; cy++) {
-                for (cx=lx0; cx<=lx1; cx++) {
-                    if (cx < 0 || cx >= cw || cy < 0 || cy >= rows) continue;
-
-                    int L = cell_stroke(cx, cy, 0, -1);
-                    int R = cell_stroke(cx, cy, 1, -1);
-                    int U = cell_stroke(cx, cy, 2, -1);
-                    int D = cell_stroke(cx, cy, 3, -1);
-
-                    int count = (L>0)+(R>0)+(U>0)+(D>0);
-                    if (count < 2) continue;  /* not a junction */
-
-                    const char *jch = junction_utf8(L, R, U, D);
-                    if (!jch) continue;
-
-                    /* find the color to use: prefer the most-recently-placed object */
-                    int use_color = 7;
-                    for (int k = num_objects-1; k >= 0; k--) {
-                        Object *ok = &objects[k];
-                        if (!ok->active) continue;
-                        if (ok->type == OBJ_LINE) {
-                            if (ok->line_dir==0 && cy==ok->y && cx>=ok->x && cx<ok->x+ok->w)
-                                { use_color=ok->color; break; }
-                            if (ok->line_dir==1 && cx==ok->x && cy>=ok->y && cy<ok->y+ok->w)
-                                { use_color=ok->color; break; }
-                        } else if (ok->type == OBJ_BOX) {
-                            int bx1=ok->x,by1=ok->y,bx2=ok->x+ok->w-1,by2=ok->y+ok->h-1;
-                            if ((cy==by1||cy==by2) && cx>=bx1 && cx<=bx2)
-                                { use_color=ok->color; break; }
-                            if ((cx==bx1||cx==bx2) && cy>=by1 && cy<=by2)
-                                { use_color=ok->color; break; }
-                        }
-                    }
-                    attron(COLOR_PAIR(use_color));
-                    mvaddstr(cy, cx, jch);
-                    attroff(COLOR_PAIR(use_color));
-                }
-            }
-        }
-    }
+    // attroff(COLOR_PAIR(pair));
 }
 
 /* ── ncurses box drawing ───────────────────────────────────────── */
-static void draw_ncurses_box(int x, int y, int w, int h,
-                              int color, int hi, int dbl)
+static void draw_ncurses_box(int x, int y, int w, int h, int color, int hi, int dbl)
 {
     int pair = hi ? (color + 10) : color;
     attron(COLOR_PAIR(pair));
@@ -529,16 +333,20 @@ static void draw_object(int idx) {
     if (!o->active) return;
     int hi = (idx == selected);
     if (o->type == OBJ_BOX) {
-        draw_ncurses_box(o->x, o->y, o->w, o->h,
-                         o->color, hi, o->box_style == BSTYLE_DOUBLE);
+        draw_ncurses_box(o->x, o->y, o->w, o->h, o->color, hi, o->box_style == D_GRAPH);
 	} else if (o->type == OBJ_GLYPH) {
         int pair = hi ? (o->color + 10) : o->color;
         attron(COLOR_PAIR(pair));
         mvaddstr(o->y, o->x, o->text);
         attroff(COLOR_PAIR(pair));
 	} else if (o->type == OBJ_LINE) {
-        draw_line_obj(o->x, o->y, o->w, o->line_dir,
-                      o->box_style == BSTYLE_DOUBLE, o->color, hi);
+        int pair = hi ? (o->color + 10) : o->color;
+        attron(COLOR_PAIR(pair));
+		if (o->line_dir == H_DIR)
+			draw_line_obj(o->x, o->y, o->w, o->line_dir, o->box_style, o->color);
+		else
+			draw_line_obj(o->x, o->y, o->h, o->line_dir, o->box_style, o->color);
+        attroff(COLOR_PAIR(pair));
     } else {
         int pair = hi ? (o->color + 10) : o->color;
         attron(COLOR_PAIR(pair));
@@ -637,7 +445,7 @@ static void draw_panel(void) {
     /* Style */
     attron(COLOR_PAIR(21));
     mvprintw(row++, px+2, "Style: %-*s", iw-7,
-             cur_bstyle == BSTYLE_DOUBLE ? "Double" : "Single");
+             cur_bstyle == D_GRAPH ? "Double" : "Single");
 
     /* Cursor position */
     mvprintw(row++, px+2, "Pos:   %d, %d", cur_x, cur_y);
@@ -670,7 +478,9 @@ typedef struct { const char *name; const char *chars; } GlyphCat;
 static const GlyphCat glyph_cats[] = {
     { "Box Single",
       "\xe2\x94\x80\xe2\x94\x82\xe2\x94\x8c\xe2\x94\x90\xe2\x94\x94\xe2\x94\x98\xe2\x94\x9c\xe2\x94\xa4"
-      "\xe2\x94\xac\xe2\x94\xb4\xe2\x94\xbc\xe2\x95\xb4\xe2\x95\xb5\xe2\x95\xb6\xe2\x95\xb7"
+      "\xe2\x94\xac\xe2\x94\xb4\xe2\x94\xbc\xe2\x95\xa4\xe2\x95\xa7\xe2\x95\xaa\xe2\x95\x9e\xe2\x95\xa1"
+	  "\xe2\x95\xab\xe2\x95\xa8\xe2\x95\x9e\xe2\x95\x95\xe2\x95\x92"
+	  "\xe2\x95\xb4\xe2\x95\xb5\xe2\x95\xb6\xe2\x95\xb7"
     },
     { "Box Double",
       "\xe2\x95\x90\xe2\x95\x91\xe2\x95\x94\xe2\x95\x97\xe2\x95\x9a\xe2\x95\x9d\xe2\x95\xa0\xe2\x95\xa3"
@@ -895,19 +705,29 @@ static int handle_glyph_pick(int ch, int place_x, int place_y) {
 
     switch (ch) {
     case KEY_UP:
-        if (gpick_row > 0) gpick_row--;
+        if (gpick_row > 0)
+			gpick_row--;
         break;
     case KEY_DOWN:
-        if (gpick_row < grows-1) gpick_row++;
+        if (gpick_row < grows-1)
+			gpick_row++;
         break;
     case KEY_LEFT:
-        if (gpick_col > 0) gpick_col--;
-        else if (gpick_row > 0) { gpick_row--; gpick_col = gcols-1; }
+        if (gpick_col > 0)
+			gpick_col--;
+        else if (gpick_row > 0) {
+			gpick_row--;
+			gpick_col = gcols-1;
+		}
         break;
     case KEY_RIGHT: {
         int mc = (gpick_row == grows-1) ? ((total-1)%gcols) : gcols-1;
-        if (gpick_col < mc) gpick_col++;
-        else if (gpick_row < grows-1) { gpick_row++; gpick_col = 0; }
+        if (gpick_col < mc) {
+			gpick_col++;
+        } else if (gpick_row < grows-1) {
+			gpick_row++;
+			gpick_col = 0;
+		}
         break;
     }
     case KEY_PPAGE:  /* PgUp */
@@ -1006,11 +826,12 @@ static void render(void) {
     clear();
 
     /* draw objects (clipped to canvas automatically by terminal) */
-    for (int i = 0; i < num_objects; i++)
+    for (int i = 0; i < num_objects; i++) {
         draw_object(i);
+	}
 
 	/* overdraw junction characters where lines/boxes meet */
-    draw_junctions();
+    // draw_junctions();
 
     /* live box preview */
     if (state == STATE_DRAWING_BOX) {
@@ -1020,20 +841,19 @@ static void render(void) {
         int y2 = box_sy > cur_y ? box_sy : cur_y;
         int w = x2-x1+1, h = y2-y1+1;
         if (w >= 2 && h >= 2)
-            draw_ncurses_box(x1, y1, w, h, cur_color, 0,
-                             cur_bstyle == BSTYLE_DOUBLE);
+            draw_ncurses_box(x1, y1, w, h, cur_color, 0, line_dbl_cur);
     }
 
 	/* live line preview */
     if (state == STATE_DRAWING_LINE) {
-        if (line_dir_cur == 0) {
+        if (line_dir_cur == H_DIR) {		// Horizontal
             int x1 = line_sx < cur_x ? line_sx : cur_x;
             int len = abs(cur_x - line_sx) + 1;
-            draw_line_obj(x1, line_sy, len, 0, line_dbl_cur, cur_color, 0);
-        } else {
+            draw_line_obj(x1, line_sy, len, 0, line_dbl_cur, cur_color);
+        } else {						// vertical
             int y1 = line_sy < cur_y ? line_sy : cur_y;
             int len = abs(cur_y - line_sy) + 1;
-            draw_line_obj(line_sx, y1, len, 1, line_dbl_cur, cur_color, 0);
+            draw_line_obj(line_sx, y1, len, 1, line_dbl_cur, cur_color);
         }
     }
 
@@ -1052,25 +872,37 @@ static void render(void) {
 
 /* ── find topmost object at canvas position ────────────────────── */
 static int find_object_at(int x, int y) {
-    for (int i = num_objects-1; i >= 0; i--) {
+	int i = num_objects-1;
+    for (; i >= 0; i--) {
         Object *o = &objects[i];
-        if (!o->active) continue;
+        if (o->active != 1)
+			continue;
         if (o->type == OBJ_BOX) {
-            if (x >= o->x && x < o->x+o->w && y >= o->y && y < o->y+o->h)
+            if (x >= o->x && x < o->x+o->w && y >= o->y && y < o->y+o->h) {
                 return i;
+			}
+		} else if (o->type == OBJ_GLYPH) {
+            if (y == o->y && x == o->x) {
+                return i;
+			}
 		} else if (o->type == OBJ_LINE) {
-            if (o->line_dir == 0) {  /* horizontal */
-                if (y == o->y && x >= o->x && x < o->x + o->w)
+            if (o->line_dir == H_DIR) {  /* horizontal */
+                if (y == o->y && x >= o->x && x < o->x + o->w) {
                     return i;
+				}
             } else {                  /* vertical */
-                if (x == o->x && y >= o->y && y < o->y + o->w)
+                if (x == o->x && y >= o->y && y < o->y + o->h) {
                     return i;
+				}
             }
-        } else {
+        } else if(o->type == OBJ_TEXT) {
             int len = (int)strlen(o->text);
-            if (y == o->y && x >= o->x && x < o->x+len)
+            if (y == o->y && x >= o->x && x < o->x+len) {
                 return i;
-        }
+			}
+        } else {
+			logIt("Unknown object type %d", o->type);
+		}
     }
     return -1;
 }
@@ -1130,7 +962,6 @@ static int confirm_discard(const char *action) {
  *     w,h  : used for boxes (0 for text)
  *     style: 0=single 1=double
  *     text : rest of line (text objects only)
- *   After all "#@" lines comes the visual canvas render.
  */
 static void save_to_file(const char *filename) {
     int rows, cols_total;
@@ -1157,7 +988,7 @@ static void save_to_file(const char *filename) {
 		}
         if (o->type == OBJ_BOX) {
             int x1=o->x, y1=o->y, w=o->w, h=o->h;
-            int dbl = (o->box_style == BSTYLE_DOUBLE);
+            int dbl = (o->box_style == D_GRAPH);
             GSET(y1,    x1,     dbl ? D_UL : U_UL);
             GSET(y1,    x1+w-1, dbl ? D_UR : U_UR);
             GSET(y1+h-1,x1,     dbl ? D_LL : U_LL);
@@ -1176,8 +1007,8 @@ static void save_to_file(const char *filename) {
                 GSET(o->y, o->x+c, tmp);
             }
 		} else if (o->type == OBJ_LINE) {
-            int dbl = (o->box_style == BSTYLE_DOUBLE);
-            if (o->line_dir == 0) {  /* horizontal */
+            int dbl = (o->box_style == D_GRAPH);
+            if (o->line_dir == H_DIR) {  /* horizontal */
                 for (int c = 0; c < o->w; c++)
                     GSET(o->y, o->x+c, dbl ? D_HZ : U_HZ);
             } else {                  /* vertical */
@@ -1197,42 +1028,63 @@ static void save_to_file(const char *filename) {
         snprintf(status_msg,sizeof(status_msg),"Can't open '%s'",filename);
         free(grid); return;
     }
+	
+	fprintf(f, "## ncurses is zero relative but the agui library is one relative.\n");
+	fprintf(f, "## The agui library will adjust the row and col\n");
+	fprintf(f, "## row col width height color dir style text\n");
+	fprintf(f, "## color       - (0-6) RED, GREEN, YELLOW, BLUE, MAGENTA, CYAN, WHITE\n");
+	fprintf(f, "## dir         - Direction Vertical=V, Horizontal=H or Unused=U\n");
+	fprintf(f, "## style       - Double=D or single=S line graphics\n");
+	fprintf(f, "## All blank lines need to start with ##\n");
+	fprintf(f, "## The objects are listed in order of Boxes, Lines, Glyphs, Text.\n");
+	fprintf(f, "## When list is searched, it is done in reverse order or bottom to top.\n");
+	fprintf(f, "##\n");
 
-    /* write metadata header — one line per object */
+	// Save all boxes first
     for (int i = 0; i < num_objects; i++) {
         Object *o = &objects[i];
         if (!o->active) {
 			continue;
 		}
         if (o->type == OBJ_BOX) {
-            fprintf(f, "#@B %d %d %d %d %d %d\n",
-                    o->x, o->y, o->w, o->h, o->color, o->box_style);
-		} else if (o->type == OBJ_GLYPH) {
-            fprintf(f, "#@G %d %d 0 0 %d 0 %s\n",
-                    o->x, o->y, o->color, o->text);
-		} else if (o->type == OBJ_LINE) {
-            fprintf(f, "#@L %d %d %d 0 %d %d\n",
-                    o->x, o->y, o->w, o->color, (o->line_dir | (o->box_style << 1)));
-        } else {
-            fprintf(f, "#@T %d %d 0 0 %d 0 %s\n",
-                    o->x, o->y, o->color, o->text);
+            fprintf(f, "#@B %3d %3d %3d %3d %3d %c %c 'null'\n",
+                    o->y, o->x, o->w, o->h, o->color, o->line_dir, o->box_style);
+        }
+    }
+	// Save all lines next
+    for (int i = 0; i < num_objects; i++) {
+        Object *o = &objects[i];
+        if (!o->active) {
+			continue;
+		}
+		if (o->type == OBJ_LINE) {
+			fprintf(f, "#@L %3d %3d %3d %3d %3d %c %c 'null'\n",
+					o->y, o->x, o->w, o->h, o->color, o->line_dir, o->box_style);
+        }
+    }
+	// Save all Text next
+    for (int i = 0; i < num_objects; i++) {
+        Object *o = &objects[i];
+        if (!o->active) {
+			continue;
+		}
+        if (o->type == OBJ_TEXT) {
+            fprintf(f, "#@T %3d %3d   0   0 %3d U U '%s'\n",
+                    o->y, o->x, o->color, o->text);
+        }
+    }
+	// Save all glyph next
+    for (int i = 0; i < num_objects; i++) {
+        Object *o = &objects[i];
+        if (!o->active) {
+			continue;
+		}
+		if (o->type == OBJ_GLYPH) {
+            fprintf(f, "#@G %3d %3d   0   0 %3d U U '%s'\n",
+                    o->y, o->x, o->color, o->text);
         }
     }
 
-    /* write visual canvas */
-    for (int r = 0; r < gr; r++) {
-        int last = -1;
-        for (int c = cols-1; c >= 0; c--) {
-            char *cell = GCELL(r,c);
-            if (!(cell[0]==' ' && cell[1]=='\0')) {
-				last=c;
-				break;
-			}
-        }
-        for (int c = 0; c <= last; c++)
-            fputs(GCELL(r,c), f);
-        fputc('\n', f);
-    }
     fclose(f);
     free(grid);
     dirty = 0;
@@ -1270,247 +1122,127 @@ static void load_from_file(const char *filename) {
     int has_meta = 0;
     char linebuf[4096];
     while (fgets(linebuf, sizeof(linebuf), f)) {
-        if (linebuf[0] != '#' || linebuf[1] != '@') {
-			break; /* end of header */
+
+        if (linebuf[0] == '#' && linebuf[1] == '#') {
+			continue;		// skip commets.
 		}
+
         has_meta = 1;
         if (num_objects >= MAX_OBJECTS) {
 			continue;
 		}
 
+		char *p = strchr(linebuf, '\n');
+		if (p != NULL)
+			*p = '\0';
+
+		if (linebuf[0] == '\0')
+			continue;
+
+		char *args[32];
         char type = linebuf[2];
-        int x=0,y=0,w=0,h=0,color=7,style=0;
+        int x=0,y=0,w=0,h=0,color=7,style=0,line_dir;
         char text[MAX_TEXT] = "";
 
         if (type == 'B') {
-            sscanf(linebuf+3, "%d %d %d %d %d %d", &x,&y,&w,&h,&color,&style);
-		} else if (type == 'L') {
-            sscanf(linebuf+3, "%d %d %d %*d %d %d", &x,&y,&w,&color,&style);
-            /* style encodes: bit0=dir, bit1=double */
-        } else if (type == 'G') {
-            int n = sscanf(linebuf+3, "%d %d %*d %*d %d %*d ", &x,&y,&color);
-            if (n == 3) {
-                /* text starts after the 6 integers */
-                const char *p = linebuf+3;
-                int fields = 0;
-                while (*p && fields < 6) {
-                    while (*p == ' ') {
-						p++;
-					}
-                    while (*p && *p != ' ') {
-						p++;
-					}
-                    fields++;
-                }
-                while (*p == ' ') {
-					p++;
-				}
-                int tlen = (int)strlen(p);
-                while (tlen > 0 && (p[tlen-1]=='\n'||p[tlen-1]=='\r')) {
-					tlen--;
-				}
-                if (tlen > 0) {
-                    strncpy(text, p, tlen < MAX_TEXT-1 ? tlen : MAX_TEXT-2);
-                    text[tlen < MAX_TEXT-1 ? tlen : MAX_TEXT-2] = '\0';
-                }
-            }
-        } else if (type == 'T') {
-            int n = sscanf(linebuf+3, "%d %d %*d %*d %d %*d ", &x,&y,&color);
-            if (n == 3) {
-                /* text starts after the 6 integers */
-                const char *p = linebuf+3;
-                int fields = 0;
-                while (*p && fields < 6) {
-                    while (*p == ' ') {
-						p++;
-					}
-                    while (*p && *p != ' ') {
-						p++;
-					}
-                    fields++;
-                }
-                while (*p == ' ') {
-					p++;
-				}
-                int tlen = (int)strlen(p);
-                while (tlen > 0 && (p[tlen-1]=='\n'||p[tlen-1]=='\r')) {
-					tlen--;
-				}
-                if (tlen > 0) {
-                    strncpy(text, p, tlen < MAX_TEXT-1 ? tlen : MAX_TEXT-2);
-                    text[tlen < MAX_TEXT-1 ? tlen : MAX_TEXT-2] = '\0';
-                }
-            }
-        } else {
-            continue;
-        }
+			char *s = strdup(linebuf);
+			int nn = qparse(s, " ", args, 32);
 
-        /* clamp color to valid range */
-        if (color < 1 || color > 7) {
-			color = 7;
+			y = atoi(args[1]);
+			x = atoi(args[2]);
+			w = atoi(args[3]);
+			h = atoi(args[4]);
+			color = atoi(args[5]);
+			line_dir = args[6][0];
+			style = args[7][0];
+
+			free(s);
+		} else if (type == 'L') {
+			char *s = strdup(linebuf);
+			int n = qparse(s, " ", args, 32);
+
+			y = atoi(args[1]);
+			x = atoi(args[2]);
+			w = atoi(args[3]);
+			h = atoi(args[4]);
+			color = atoi(args[5]);
+			line_dir = args[6][0];
+			style = args[7][0];
+
+			free(s);
+        } else if (type == 'G') {
+			char *s = strdup(linebuf);
+			int nn = qparse(s, " ", args, 32);
+
+			y = atoi(args[1]);
+			x = atoi(args[2]);
+			w = atoi(args[3]);
+			h = atoi(args[4]);
+			color = atoi(args[5]);
+			line_dir = args[6][0];
+			style = args[7][0];
+			strcpy(text, args[8]);
+
+			free(s);
+        } else if (type == 'T') {
+			char *s = strdup(linebuf);
+			int n = qparse(s, " ", args, 32);
+
+			y = atoi(args[1]);
+			x = atoi(args[2]);
+			w = atoi(args[3]);
+			h = atoi(args[4]);
+			color = atoi(args[5]);
+			line_dir = args[6][0];
+			style = args[7][0];
+			strcpy(text, args[8]);
+
+			free(s);
+		} else {
+			continue;
 		}
 
+		/* clamp color to valid range */
+        if (color < 1 || color > 7)
+			color = 7;
+
         Object *o = &objects[num_objects++];
-        memset(o, 0, sizeof *o);
+        memset(o, 0, sizeof *o);		// clear structure
         o->active    = 1;
-        o->x         = x; o->y = y;
+        o->x         = x;
+		o->y		 = y;
+		o->w         = w;
+		o->h         = h;
         o->color     = color;
-        if (type == 'B') {
-            o->type      = OBJ_BOX;
-            o->w         = w; o->h = h;
-            o->box_style = style;
-		} else if (type == 'L') {
+
+		if (type == 'L') {
             o->type      = OBJ_LINE;
-            o->w         = w;
-            o->line_dir  = style & 1;
-            o->box_style = (style >> 1) & 1;
+            o->line_dir  = line_dir;
+            o->box_style = style;
+		} else if (type == 'B') {
+			o->type      = OBJ_BOX;
+            o->line_dir  = U_DIR;
+            o->box_style = style;
 		} else if (type == 'G') {
             o->type = OBJ_GLYPH;
+            o->line_dir  = U_DIR;
+            strncpy(o->text, text, MAX_TEXT-1);
+		} else if (type == 'T') {
+            o->type = OBJ_TEXT;
+            o->line_dir  = U_DIR;
             strncpy(o->text, text, MAX_TEXT-1);
         } else {
             o->type = OBJ_TEXT;
+            o->line_dir  = U_DIR;
             strncpy(o->text, text, MAX_TEXT-1);
         }
     }
 
-    /* If we had a metadata header, we're done — objects fully restored */
     fclose(f);
-
-    if (!has_meta) {
-        /* ── Legacy / external file: fall back to shape detection ── */
-        FILE *f2 = fopen(filename, "r");
-        if (!f2) {
-			snprintf(status_msg,sizeof(status_msg),"Can't reopen");
-			return;
-		}
-
-        int rows, cols_total;
-        getmaxyx(stdscr, rows, cols_total);
-        int cols = cols_total - PANEL_W;
-        int gr   = rows;
-
-        char *grid = calloc((size_t)(gr * cols * CSIZ), 1);
-        if (!grid) { fclose(f2); snprintf(status_msg,sizeof(status_msg),"Out of memory!"); return; }
-        for (int r = 0; r < gr; r++)
-            for (int c = 0; c < cols; c++)
-                GCELL(r,c)[0] = ' ', GCELL(r,c)[1] = '\0';
-
-        int row = 0;
-        while (row < gr && fgets(linebuf, sizeof(linebuf), f2)) {
-            int llen = (int)strlen(linebuf);
-            while (llen > 0 && (linebuf[llen-1]=='\n'||linebuf[llen-1]=='\r'))
-                linebuf[--llen] = '\0';
-            int col = 0;
-            const char *p = linebuf;
-            while (*p && col < cols) {
-                char cell[CSIZ] = {0};
-                int consumed = read_utf8(p, cell);
-                if (!consumed) break;
-                strncpy(GCELL(row, col), cell, CSIZ-1);
-                p += consumed; col++;
-            }
-            row++;
-        }
-        fclose(f2);
-
-        char *used = calloc((size_t)(gr * cols), 1);
-        if (!used) {
-			free(grid);
-			snprintf(status_msg,sizeof(status_msg),"Out of memory!");
-			return;
-		}
-
-        num_objects = 0;
-
-        for (int r = 0; r < gr && num_objects < MAX_OBJECTS; r++) {
-            for (int c = 0; c < cols && num_objects < MAX_OBJECTS; c++) {
-                char *cell = GCELL(r, c);
-                int is_single = cell_is(cell, U_UL);
-                int is_double = cell_is(cell, D_UL);
-                if (!is_single && !is_double) {
-					continue;
-				}
-                int bstyle = is_double ? BSTYLE_DOUBLE : BSTYLE_SINGLE;
-                const char *hz = bstyle==BSTYLE_DOUBLE?D_HZ:U_HZ;
-                const char *vt = bstyle==BSTYLE_DOUBLE?D_VT:U_VT;
-                const char *ur = bstyle==BSTYLE_DOUBLE?D_UR:U_UR;
-                const char *ll = bstyle==BSTYLE_DOUBLE?D_LL:U_LL;
-                const char *lr = bstyle==BSTYLE_DOUBLE?D_LR:U_LR;
-                int w=0;
-                for (int cc=c+1;cc<cols;cc++) {
-                    char *tc=GCELL(r,cc);
-                    if (cell_is(tc,hz)){w=cc-c+1;continue;}
-                    if (cell_is(tc,ur)){w=cc-c+1;break;}
-                    w=0;break;
-                }
-                if (w<2) continue;
-                int h=0;
-                for (int rr=r+1;rr<gr;rr++) {
-                    char *lc=GCELL(rr,c);
-                    if (cell_is(lc,vt)){h=rr-r+1;continue;}
-                    if (cell_is(lc,ll)){h=rr-r+1;break;}
-                    h=0;break;
-                }
-                if (h<2) continue;
-                if (!cell_is(GCELL(r+h-1,c+w-1),lr)) continue;
-                Object *o=&objects[num_objects++];
-                memset(o,0,sizeof *o);
-                o->type=OBJ_BOX;o->x=c;o->y=r;o->w=w;o->h=h;
-                o->color=cur_color;o->box_style=bstyle;o->active=1;
-                for (int cc=c;cc<c+w;cc++){used[r*cols+cc]=1;used[(r+h-1)*cols+cc]=1;}
-                for (int rr=r;rr<r+h;rr++){used[rr*cols+c]=1;used[rr*cols+c+w-1]=1;}
-            }
-        }
-        for (int r=0;r<gr&&num_objects<MAX_OBJECTS;r++) {
-            int c=0;
-            while (c<cols) {
-                if (used[r*cols+c]||(GCELL(r,c)[0]==' '&&GCELL(r,c)[1]=='\0')){c++;continue;}
-                int start=c;
-                char text[MAX_TEXT]="";
-                int tlen=0;
-                while (c<cols&&tlen<MAX_TEXT-2&&!used[r*cols+c]&&
-                       !(GCELL(r,c)[0]==' '&&GCELL(r,c)[1]=='\0')) {
-                    int clen=(int)strlen(GCELL(r,c));
-                    if (tlen+clen>=MAX_TEXT-1) break;
-                    memcpy(text+tlen,GCELL(r,c),clen);
-                    tlen+=clen;c++;
-                }
-                text[tlen]='\0';
-                if (tlen>0&&num_objects<MAX_OBJECTS) {
-                    Object *o=&objects[num_objects++];
-                    memset(o,0,sizeof *o);
-                    o->type=OBJ_TEXT;o->x=start;o->y=r;
-                    o->color=cur_color;o->active=1;
-                    strncpy(o->text,text,MAX_TEXT-1);
-                }
-            }
-        }
-        free(used); free(grid);
-    }
 
     dirty = 0;
     snprintf(status_msg, sizeof(status_msg), "Loaded: %s (%d obj)", filename, num_objects);
 }
-
-#if(0)
-/* ── inline text prompt overlaid on the panel message row ──────── */
-static void prompt_string(const char *prompt, char *out, int maxlen) {
-    int rows, cols;
-    getmaxyx(stdscr, rows, cols);
-    int px = cols - PANEL_W;
-    /* clear the message row in the panel */
-    attron(COLOR_PAIR(20));
-    mvhline(rows-1, px+1, ' ', PANEL_W-1);
-    mvprintw(rows-1, px+2, "%s: ", prompt);
-    attroff(COLOR_PAIR(20));
-    move(rows-1, px+2 + (int)strlen(prompt) + 2);
-    echo();
-    curs_set(1);
-    getnstr(out, maxlen-1);
-    noecho();
-    curs_set(1);
-}
-#endif
 
 /* ── inline text prompt overlaid on the panel message row ──────── */
 static void prompt_string(const char *prompt, char *out, int maxlen) {
@@ -1621,24 +1353,32 @@ int main(int argc, char **argv) {
 
         /* cursor movement — clamp to canvas, also drags selected object */
         case KEY_UP:
-            if (cur_y > 0) cur_y--;
-            if (state == STATE_MOVING && selected >= 0)
+            if (cur_y > 0)
+				cur_y--;
+            if (state == STATE_MOVING && selected >= 0) {
                 objects[selected].y = cur_y - move_off_y;
+			}
             break;
         case KEY_DOWN:
-            if (cur_y < rows-1) cur_y++;
-            if (state == STATE_MOVING && selected >= 0)
+            if (cur_y < rows-1)
+				cur_y++;
+            if (state == STATE_MOVING && selected >= 0) {
                 objects[selected].y = cur_y - move_off_y;
+			}
             break;
         case KEY_LEFT:
-            if (cur_x > 0) cur_x--;
-            if (state == STATE_MOVING && selected >= 0)
+            if (cur_x > 0)
+				cur_x--;
+            if (state == STATE_MOVING && selected >= 0) {
                 objects[selected].x = cur_x - move_off_x;
+			}
             break;
         case KEY_RIGHT:
-            if (cur_x < cw-1) cur_x++;
-            if (state == STATE_MOVING && selected >= 0)
+            if (cur_x < cw-1)
+				cur_x++;
+            if (state == STATE_MOVING && selected >= 0) {
                 objects[selected].x = cur_x - move_off_x;
+			}
             break;
 
         /* color picker */
@@ -1658,13 +1398,15 @@ int main(int argc, char **argv) {
         /* draw box */
         case 'b':
         case 'B': {
-            int want_style = (ch == 'B') ? BSTYLE_DOUBLE : BSTYLE_SINGLE;
+            int dbl = S_GRAPH;
+			if (ch == 'B')
+				dbl = D_GRAPH;
             if (state == STATE_NORMAL) {
-                cur_bstyle = want_style;
-                box_sx = cur_x; box_sy = cur_y;
+                box_sx = cur_x;
+				box_sy = cur_y;
+				line_dbl_cur = dbl;
                 state  = STATE_DRAWING_BOX;
-                snprintf(status_msg, sizeof(status_msg),
-                         "Corner set, press %c", (char)ch);
+                snprintf(status_msg, sizeof(status_msg), "Corner set, press %c", (char)ch);
             } else if (state == STATE_DRAWING_BOX) {
                 int x1 = box_sx < cur_x ? box_sx : cur_x;
                 int y1 = box_sy < cur_y ? box_sy : cur_y;
@@ -1673,13 +1415,17 @@ int main(int argc, char **argv) {
                 if (w >= 2 && h >= 2 && num_objects < MAX_OBJECTS) {
                     Object *o = &objects[num_objects++];
                     memset(o, 0, sizeof *o);
-                    o->type = OBJ_BOX; o->x=x1; o->y=y1;
-                    o->w=w; o->h=h; o->color=cur_color;
-                    o->box_style=cur_bstyle; o->active=1;
+                    o->type = OBJ_BOX;
+					o->x=x1;
+					o->y=y1;
+                    o->w=w;
+					o->h=h;
+					o->color=cur_color;
+                    o->box_style=dbl;
+					o->active=1;
                     dirty = 1;
-                    snprintf(status_msg, sizeof(status_msg),
-                             "%s box created",
-                             cur_bstyle==BSTYLE_DOUBLE ? "Double" : "Single");
+                    snprintf(status_msg, sizeof(status_msg), "%s box created",
+							cur_bstyle==D_GRAPH ? "Double" : "Single");
                 } else {
                     snprintf(status_msg, sizeof(status_msg), "Box too small");
                 }
@@ -1691,25 +1437,32 @@ int main(int argc, char **argv) {
 		/* draw horizontal line (h=single, H=double) */
         case 'h':
         case 'H': {
-            int dbl = (ch == 'H');
+            int dbl = S_GRAPH;
+			if (ch == 'H')
+				dbl = D_GRAPH;
+
             if (state == STATE_NORMAL) {
-                line_sx = cur_x; line_sy = cur_y;
-                line_dir_cur = 0; line_dbl_cur = dbl;
+                line_sx = cur_x;
+				line_sy = cur_y;
+                line_dir_cur = H_DIR;
+				line_dbl_cur = dbl;
                 state = STATE_DRAWING_LINE;
                 snprintf(status_msg, sizeof(status_msg),
                          "%s horiz line: move then press %c",
                          dbl ? "Double" : "Single", (char)ch);
-            } else if (state == STATE_DRAWING_LINE && line_dir_cur == 0) {
-                int x1  = line_sx < cur_x ? line_sx : cur_x;
+            } else if (state == STATE_DRAWING_LINE && line_dir_cur == H_DIR) {
+                int x1  = (line_sx < cur_x)? line_sx : cur_x;
                 int len = abs(cur_x - line_sx) + 1;
                 if (len >= 1 && num_objects < MAX_OBJECTS) {
                     Object *o = &objects[num_objects++];
                     memset(o, 0, sizeof *o);
                     o->type      = OBJ_LINE;
-                    o->x         = x1; o->y = line_sy;
+                    o->x         = x1;
+					o->y         = line_sy;
                     o->w         = len;
-                    o->line_dir  = 0;
-                    o->box_style = dbl ? BSTYLE_DOUBLE : BSTYLE_SINGLE;
+                    o->h         = 0;
+                    o->line_dir  = H_DIR;
+                    o->box_style = dbl;
                     o->color     = cur_color; o->active = 1;
                     dirty = 1;
                     snprintf(status_msg, sizeof(status_msg),
@@ -1724,30 +1477,38 @@ int main(int argc, char **argv) {
         /* draw vertical line (v=single, V=double) */
         case 'v':
         case 'V': {
-            int dbl = (ch == 'V');
+            int dbl = S_GRAPH;
+			if(ch == 'V')
+				dbl = D_GRAPH;
             if (state == STATE_NORMAL) {
-                line_sx = cur_x; line_sy = cur_y;
-                line_dir_cur = 1; line_dbl_cur = dbl;
+                line_sx = cur_x;
+				line_sy = cur_y;
+                line_dir_cur = V_DIR;
+				line_dbl_cur = dbl;
                 state = STATE_DRAWING_LINE;
                 snprintf(status_msg, sizeof(status_msg),
                          "%s vert line: move then press %c",
                          dbl ? "Double" : "Single", (char)ch);
-            } else if (state == STATE_DRAWING_LINE && line_dir_cur == 1) {
+            } else if (state == STATE_DRAWING_LINE && line_dir_cur == V_DIR) {
                 int y1  = line_sy < cur_y ? line_sy : cur_y;
                 int len = abs(cur_y - line_sy) + 1;
                 if (len >= 1 && num_objects < MAX_OBJECTS) {
                     Object *o = &objects[num_objects++];
                     memset(o, 0, sizeof *o);
                     o->type      = OBJ_LINE;
-                    o->x         = line_sx; o->y = y1;
-                    o->w         = len;
-                    o->line_dir  = 1;
-                    o->box_style = dbl ? BSTYLE_DOUBLE : BSTYLE_SINGLE;
+                    o->x         = line_sx;
+					o->y         = y1;
+                    o->w         = 0;
+                    o->h         = len;
+                    o->line_dir  = V_DIR;
+                    o->box_style = dbl;
+					logIt("style %c", o->box_style);
                     o->color     = cur_color; o->active = 1;
                     dirty = 1;
                     snprintf(status_msg, sizeof(status_msg),
                              "%s vert line (%d chars)",
                              dbl ? "Double" : "Single", len);
+					logIt("Here 2, x=%d, y=%d, w=%d, h=%d", o->x, o->y, o->w, o->h);
                 }
                 state = STATE_NORMAL;
             }
@@ -1762,8 +1523,11 @@ int main(int argc, char **argv) {
                 if (text[0]) {
                     Object *o = &objects[num_objects++];
                     memset(o, 0, sizeof *o);
-                    o->type=OBJ_TEXT; o->x=cur_x; o->y=cur_y;
-                    o->color=cur_color; o->active=1;
+                    o->type=OBJ_TEXT;
+					o->x=cur_x;
+					o->y=cur_y;
+                    o->color=cur_color;
+					o->active=1;
                     strncpy(o->text, text, MAX_TEXT-1);
                     dirty = 1;
                     snprintf(status_msg, sizeof(status_msg), "Text added");
@@ -1774,7 +1538,8 @@ int main(int argc, char **argv) {
         /* select / move */
         case 's':
             if (state == STATE_MOVING) {
-                state = STATE_NORMAL; selected = -1;
+                state = STATE_NORMAL;
+				selected = -1;
                 dirty = 1;
                 snprintf(status_msg, sizeof(status_msg), "Placed");
             } else if (state == STATE_NORMAL) {
@@ -1784,8 +1549,8 @@ int main(int argc, char **argv) {
                     move_off_x = cur_x - objects[idx].x;
                     move_off_y = cur_y - objects[idx].y;
                     cur_color  = objects[idx].color;
-                    if (objects[idx].type == OBJ_BOX)
-                        cur_bstyle = objects[idx].box_style;
+                    // if (objects[idx].type == OBJ_BOX)
+                    cur_bstyle = objects[idx].box_style;
                     state = STATE_MOVING;
                     snprintf(status_msg, sizeof(status_msg), "Moving object");
                 } else {
@@ -1820,12 +1585,15 @@ int main(int argc, char **argv) {
         /* delete */
         case 'd': {
             int idx = (selected >= 0) ? selected : find_object_at(cur_x, cur_y);
+			logIt("idx %d", idx);
             if (idx >= 0) {
                 objects[idx].active = 0;
-                for (int i = idx; i < num_objects-1; i++)
+                for (int i = idx; i < num_objects-1; i++) {
                     objects[i] = objects[i+1];
+				}
                 num_objects--;
-                if (selected == idx) selected = -1;
+                if (selected == idx)
+					selected = -1;
                 state = STATE_NORMAL;
                 dirty = 1;
                 snprintf(status_msg, sizeof(status_msg), "Deleted");
@@ -1851,7 +1619,8 @@ int main(int argc, char **argv) {
             }
             char filename[MAX_FILENAME] = "";
             prompt_string("Load", filename, MAX_FILENAME);
-            if (filename[0]) load_from_file(filename);
+            if (filename[0])
+				load_from_file(filename);
             break;
         }
 

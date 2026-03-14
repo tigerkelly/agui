@@ -11,7 +11,7 @@ LDFLAGS = -lncursesw
 TARGET = adraw
 
 # Source files (all .c files in current directory)
-SRCS = adraw.c
+SRCS = adraw.c parse.c qparse.c strqtok.c
 
 # Object files
 OBJS = $(SRCS:.c=.o)

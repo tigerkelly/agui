@@ -28,6 +28,9 @@
 *.so.*
 *.dylib
 
+# Copies files
+*.[1-9]
+
 # Executables
 *.exe
 *.out
@@ -41,6 +44,7 @@
 *.su
 *.idb
 *.pdb
+*.debug
 
 # Kernel Module Compile Results
 *.mod*
@@ -54,7 +58,10 @@ test_agui
 test_adraw
 adraw
 old
+kw
+kw[1-9]
 kw.c
+kw[1-9].c
 kw2.c
 kw3.c
 

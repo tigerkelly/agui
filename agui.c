@@ -1,4 +1,4 @@
-/* Ascii escape code library for displaying information.
+/* Asciiescape code library for displaying information.
  * Create by Kelly Wiles
  */
 
@@ -13,6 +13,7 @@
 #include "agui.h"
 
 #include "chartable.c"
+#include "linkedList.c"
 
 char *prgVersion = "1.0.0";
 
@@ -22,8 +23,14 @@ int screenRows = 0;
 int screenCols = 0;
 
 RowCol _savedCursor;
+LinkedList list;
+FILE *_debugfd = NULL;
 
 extern char *trimWhiteSpace(char *str);
+char *strqtok (char *s1, const char *s2);
+int qparse(char *str, const char *chrs, char **argz, int max_argz);
+
+int parse(char *str, const char *chrs, char **argz, int max_argz);
 
 // Set fg and bg color.
 void aguiSetColor(int fg, int bg) {
@@ -257,77 +264,47 @@ void aguiSetAll(int fg, int bg, int effect) {
         aguiSetColor(fg, bg);
 }
 
-void aguiBox(int row, int col, int width, int height, bool useSingleLine) {
+void aguiBox(int row, int col, int width, int height, int sord) {
     int r = row;
     int c = col;
 
     UnicodeChar *u = NULL;
 
-    if (useSingleLine == true)
+    if (sord == S_GRAPH) {
         u = single_line;
-    else
+    } else {
         u = double_line;
+	}
 
     aguiMvText(r, c++, "%s", u[TOP_LEFT].symbol);
     for (int i = 1; i < width; i++) {
-        aguiMvText(r, c, "%s", u[HORIZ_LINE].symbol);
-        c++;
+        aguiMvText(r, c++, "%s", u[HORIZ_LINE].symbol);
     }
     aguiMvText(r, c, "%s", u[TOP_RIGHT].symbol);
 
     r = row + 1;
-    for (int i = 1; i < height; i++) {
+    for (int i = 2; i < height; i++) {
         aguiMvText(r, col, "%s", u[VERT_LINE].symbol);
-        aguiMvText(r, col + width, "%s", u[VERT_LINE].symbol);
-        r++;
+        aguiMvText(r++, col + width, "%s", u[VERT_LINE].symbol);
     }
 
     c = col;
     aguiMvText(r, c++, "%s", u[BOTTOM_LEFT].symbol);
     for (int i = 1; i < width; i++) {
-        aguiMvText(r, c, "%s", u[HORIZ_LINE].symbol);
-        c++;
+        aguiMvText(r, c++, "%s", u[HORIZ_LINE].symbol);
     }
     aguiMvText(r, c, "%s", u[BOTTOM_RIGHT].symbol);
     currRow = row;
     currCol = col;
 }
 
-#if(0)
-void aguiBoxCharLeft(int row, int col, bool useSingleLine) {
-	UnicodeChar *u = NULL;
-
-    if (useSingleLine == true)
-        u = single_line;
-    else
-        u = double_line;	
-	
-	aguiMvText(row, col, "%s", u[HORIZ_LINE].symbol);
-    currRow = row;
-    currCol = col;
-}
-
-void aguiBoxRight(int row, int col, bool useSingleLine) {
-	UnicodeChar *u = NULL;
-
-    if (useSingleLine == true)
-        u = single_line;
-    else
-        u = double_line;	
-	
-	aguiMvText(row, col, "%s", u[HORIZ_LINE].symbol);
-    currRow = row;
-    currCol = col;
-}
-#endif
-
-void aguiBoxTop(int row, int col, int width, bool useSingleLine) {
+void aguiBoxTop(int row, int col, int width, int sord) {
     int r = row;
     int c = col;
 
     UnicodeChar *u = NULL;
 
-    if (useSingleLine == true)
+    if (sord == S_GRAPH)
         u = single_line;
     else
         u = double_line;
@@ -342,13 +319,13 @@ void aguiBoxTop(int row, int col, int width, bool useSingleLine) {
     currCol = col;
 }
 
-void aguiBoxBottom(int row, int col, int width, bool useSingleLine) {
+void aguiBoxBottom(int row, int col, int width, int sord) {
     int r = row;
     int c = col;
 
     UnicodeChar *u = NULL;
 
-    if (useSingleLine == true)
+    if (sord == S_GRAPH)
         u = single_line;
     else
         u = double_line;
@@ -363,39 +340,30 @@ void aguiBoxBottom(int row, int col, int width, bool useSingleLine) {
     currCol = col;
 }
 
-void aguiHorizLine(int row, int col, int width, bool useSingleLine, bool addEnds) {
+void aguiHorizLine(int row, int col, int width, int sord) {
     int r = row;
     int c = col;
     currRow = row;
     currCol = col;
 
+	// aguiDebug("width %d", width);
+
     UnicodeChar *u = NULL;
 
-    if (useSingleLine == true)
+    if (sord == S_GRAPH)
         u = single_line;
     else
         u = double_line;
 
     int i = 0;
-    if (addEnds == true) {
-        aguiMvText(r, c, "%s", u[LEFT_T].symbol);
-        i++;
-        width--;
-        c++;
-    }
 
-    for (; i < width; i++) {
+    for (; i <= width; i++) {
         aguiMvText(r, c, "%s", u[HORIZ_LINE].symbol);
         c++;
     }
-    if (addEnds == true) {
-        aguiMvText(r, c, "%s", u[RIGHT_T].symbol);
-        i++;
-        width--;
-    }
 }
 
-void aguiVertLine(int row, int col, int height, bool useSingleLine, bool addEnds) {
+void aguiVertLine(int row, int col, int height, int sord) {
     int r = row;
     int c = col;
     currRow = row;
@@ -403,27 +371,16 @@ void aguiVertLine(int row, int col, int height, bool useSingleLine, bool addEnds
 
     UnicodeChar *u = NULL;
 
-    if (useSingleLine == true)
+    if (sord == S_GRAPH)
         u = single_line;
     else
         u = double_line;
 
     int i = 0;
-    if (addEnds == true) {
-        aguiMvText(r, c, "%s", u[TOP_T].symbol);
-        i++;
-        height--;
-        r++;
-    }
 
     for (; i < height; i++) {
         aguiMvText(r, c, "%s", u[VERT_LINE].symbol);
         r++;
-    }
-    if (addEnds == true) {
-        aguiMvText(r, c, "%s", u[BOTTOM_T].symbol);
-        i++;
-        height--;
     }
 }
 
@@ -482,14 +439,14 @@ void aguiBlockBox(int row, int col, int width, int height, bool useHalfBlock) {
 }
 
 // Draw a single Horiz line at row/col.
-void aguiBoxHoriz(int row, int col, bool useSingleLine) {
+void aguiBoxHoriz(int row, int col, int sord) {
 	int r = row;
     currRow = row;
     currCol = col;
 
     UnicodeChar *u = NULL;
 
-    if (useSingleLine == true) {
+    if (sord == S_GRAPH) {
         u = single_line;
     } else {
         u = double_line;
@@ -499,14 +456,14 @@ void aguiBoxHoriz(int row, int col, bool useSingleLine) {
 }
 
 // Draw a single vertical line at row/col
-void aguiBoxVert(int row, int col, bool useSingleLine) {
+void aguiBoxVert(int row, int col, int sord) {
 	int r = row;
     currRow = row;
     currCol = col;
 
     UnicodeChar *u = NULL;
 
-    if (useSingleLine == true) {
+    if (sord == S_GRAPH) {
         u = single_line;
     } else {
         u = double_line;
@@ -515,14 +472,14 @@ void aguiBoxVert(int row, int col, bool useSingleLine) {
     aguiMvText(r++, col, "%s", u[D_VERT_LINE].symbol);
 }
 
-void aguiBoxLeft(int row, int col, int height, bool useSingleLine) {
+void aguiBoxLeft(int row, int col, int height, int sord) {
     int r = row;
     currRow = row;
     currCol = col;
 
     UnicodeChar *u = NULL;
 
-    if (useSingleLine == true) {
+    if (sord == S_GRAPH) {
         u = single_line;
     } else {
         u = double_line;
@@ -536,14 +493,14 @@ void aguiBoxLeft(int row, int col, int height, bool useSingleLine) {
     aguiMvText(row + height, col, "%s", u[BOTTOM_LEFT].symbol);
 }
 
-void aguiBoxRight(int row, int col, int height, bool useSingleLine) {
+void aguiBoxRight(int row, int col, int height, int sord) {
     int r = row;
     currRow = row;
     currCol = col;
 
     UnicodeChar *u = NULL;
 
-    if (useSingleLine == true) {
+    if (sord == S_GRAPH) {
         u = single_line;
     } else {
         u = double_line;
@@ -658,6 +615,27 @@ void aguiScreenSize(RowCol *rc) {
 	rc->col = w.ws_col;
 }
 
+void aguiDebug(char *fmt, ...) {
+	va_list valist;
+
+    va_start(valist, fmt);
+
+	if (_debugfd == NULL) {
+		_debugfd = fopen("agui.debug", "a+");
+
+		if (_debugfd == NULL)
+			return;
+	}
+
+	vfprintf(_debugfd, fmt, valist);
+
+	if (strrchr(fmt, '\n') == NULL)
+		fprintf(_debugfd, "\n");
+	fflush(_debugfd);
+
+    va_end(valist);
+}
+
 // Returns zero on success.
 int aguiLoadScreen(char *screenName) {
 	if (access(screenName, F_OK) != 0) {
@@ -677,17 +655,111 @@ int aguiLoadScreen(char *screenName) {
 	if (f != NULL) {
 		char line[256];
 
+		listDestroy(&list);
+		listInit(&list);
+
 		int count = 0;
 		while (fgets(line, sizeof(line), f) != NULL) {
-			if (strncmp(line, "#@", 2) == 0)
+			char *p = strchr(line, '\n');
+			if (p != NULL)
+				*p = '\0';
+			if (strncmp(line, "#@", 2) == 0) {
+				char *args[128];
+				char *s = strdup(line);
+				qparse(s, " ", args, 128);
+				char type = args[0][2];
+				// aguiDebug("line '%s'", line);
+				if (type == 'B') {
+					NodeData *nd = calloc(1, sizeof(NodeData));
+					nd->type = args[0][2];
+					nd->r = atoi(args[1]);
+					nd->c = atoi(args[2]);
+					nd->w = atoi(args[3]);
+					nd->h = atoi(args[4]);
+					nd->color = atoi(args[5]);
+					nd->line_dir = args[6][0];		// Horizontal or vertical
+					nd->style = args[7][0];			// single or double line graphics
+					listPushBack(&list, *nd);
+				} else if (type == 'T') {
+					NodeData *nd = calloc(1, sizeof(NodeData));
+					nd->type = args[0][2];
+					nd->r = atoi(args[1]);
+					nd->c = atoi(args[2]);
+					nd->w = atoi(args[3]);
+					nd->h = atoi(args[4]);
+					nd->color = atoi(args[5]);
+					nd->line_dir = args[6][0];
+					nd->style = args[7][0];
+					strcpy(nd->text, args[8]);
+					// aguiDebug("nd->text: '%s'", nd->text);
+					listPushBack(&list, *nd);
+				} else if (type == 'L') {
+					NodeData *nd = calloc(1, sizeof(NodeData));
+					nd->type = args[0][2];
+					nd->r = atoi(args[1]);
+					nd->c = atoi(args[2]);
+					nd->w = atoi(args[3]);
+					nd->h = atoi(args[4]);
+					nd->color = atoi(args[5]);
+					nd->line_dir = args[6][0];
+					nd->style = args[7][0];
+					listPushBack(&list, *nd);
+				} else if (type == 'G') {
+					NodeData *nd = calloc(1, sizeof(NodeData));
+					nd->type = args[0][2];
+					nd->r = atoi(args[1]);
+					nd->c = atoi(args[2]);
+					nd->w = atoi(args[3]);
+					nd->h = atoi(args[4]);
+					nd->color = atoi(args[5]);
+					nd->line_dir = args[6][0];
+					nd->style = args[7][0];
+					strcpy(nd->text, args[8]);
+					listPushBack(&list, *nd);
+				}
+				free(s);
 				continue;
-			printf("%s", line);
+			}
+			// printf("%s", line);
 
 			if (++count >= rc.row)
 				break;
 		}
 
 		fclose(f);
+
+		// apply color and style
+
+		// NOTE: Ncurses is zero relative and ascci escape codes are 1 relative
+
+		ListNode *cur = list.head;
+		while(cur) {
+			if (cur->data.type == 'B') {
+				aguiSetColor(cur->data.color, COLOR_DEFAULT);
+				aguiBox(cur->data.r+1, cur->data.c+1, cur->data.w, cur->data.h, cur->data.style);
+				aguiSetColor(COLOR_DEFAULT, COLOR_DEFAULT);
+			} else if (cur->data.type == 'T') {
+				aguiSetColor(cur->data.color, COLOR_DEFAULT);
+				aguiMvText(cur->data.r+1, cur->data.c+1, cur->data.text);
+				aguiSetColor(COLOR_DEFAULT, COLOR_DEFAULT);
+			} else if (cur->data.type == 'L') {
+			// aguiDebug("type=%c, r=%d, c=%d, w=%d, h=%d, color=%d, line_dir=%c, style=%c, test=%s",
+					// cur->data.type, cur->data.r+1, cur->data.c+1, cur->data.w, cur->data.h,
+					// cur->data.color, cur->data.line_dir, cur->data.style, cur->data.text);
+				aguiSetColor(COLOR_WHITE, COLOR_DEFAULT);
+				if (cur->data.line_dir == H_DIR) {
+					aguiHorizLine(cur->data.r+1, cur->data.c+1, cur->data.w, cur->data.style);
+				} else {
+					aguiVertLine(cur->data.r+1, cur->data.c+1, cur->data.h, cur->data.style);
+				}
+				aguiSetColor(COLOR_DEFAULT, COLOR_DEFAULT);
+			} else if (cur->data.type == 'G') {
+				aguiSetColor(cur->data.color, COLOR_DEFAULT);
+				aguiMvText(cur->data.r+1, cur->data.c+1, cur->data.text);
+				aguiSetColor(COLOR_DEFAULT, COLOR_DEFAULT);
+			}
+			cur = cur->next;
+		}
 	} else {
 		return 2;
 	}

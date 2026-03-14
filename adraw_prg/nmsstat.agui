@@ -1,18 +1,14 @@
 ## ncurses is zero relative but the agui library is one relative.
 ## The agui library will adjust the row and col
 ## row col width height color dir style text
-## color       - (0-6) RED, GREEN, YELLOW, BLUE, MAGENTA, CYAN, WHITE
+## color       - (0-7) RED, GREEN, YELLOW, BLUE, MAGENTA, CYAN, WHITE
 ## dir         - Direction Vertical=V, Horizontal=H or Unused=U
 ## style       - Double=D or single=S line graphics
 ## All blank lines need to start with ##
-## The objects are listed in order of Boxes, Lines, Glyphs, Text.
 ##
 #@B   0   0  81   3   7 U D 'null'
-#@B   6   0  81  11   7 U S 'null'
 #@B  17   0  81   3   7 U S 'null'
-#@B  10  41  12   5   7 U D 'null'
-#@L   8   1  79   0   7 H 0 'null'
-#@L   8  30   0   9   7 V S 'null'
+#@L   8   1  79   0   7 H D 'null'
 #@T   1  17   0   0   4 U U 'NETWORK MONITOR - REAL-TIME STATISTICS VIEWER'
 #@T   3   1   0   0   4 U U 'Monitor Status:'
 #@T   4   1   0   0   4 U U 'Last Update:'

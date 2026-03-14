@@ -17,7 +17,7 @@ int main(int argc, char *argv[]) {
 
     printf("AGUI Version: %s\n", aguiVersion());
 
-    sleep(2);
+    sleep(1);
     
     aguiClearScreen();
     aguiHideCursor(true);
@@ -29,12 +29,12 @@ int main(int argc, char *argv[]) {
 	aguiSetAll(COLOR_DEFAULT, COLOR_DEFAULT, TEXT_BOLD);
     aguiBox(3, 20, 20, 10, true);
     aguiHorizLine(5, 20, 21, true, true);
-    aguiVertLine(5, 26, 9, true, true);
-    aguiVertLine(5, 33, 9, true, true);
+    aguiVertLine(5, 25, 8, true, true);
+    aguiVertLine(5, 32, 8, true, true);
     aguiBox(3, 50, 20, 10, false);
     aguiHorizLine(5, 50, 21, false, true);
-    aguiVertLine(5, 56, 9, false, true);
-    aguiVertLine(5, 63, 9, false, true);
+    aguiVertLine(5, 55, 8, false, true);
+    aguiVertLine(5, 62, 8, false, true);
 
         aguiBoxTop(14, 20, 20, true);
         aguiBoxBottom(16, 20, 20, true);

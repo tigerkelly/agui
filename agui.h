@@ -1,8 +1,16 @@
 #ifndef AGUI_H
 #define AGUI_H
 
-#define SHM_NAME "/nms_shm"
-#define MAX_PROTOCOLS 256
+#define SHM_NAME		"/nms_shm"
+#define MAX_PROTOCOLS	256
+#define MAX_ITEMS		256
+
+#define H_DIR		'H'
+#define V_DIR		'V'
+#define U_DIR		'U'
+
+#define D_GRAPH		'D'
+#define S_GRAPH		'S'
 
 enum {
 	COLOR_BLACK,
@@ -233,15 +241,15 @@ void aguiBackward(int numCols);
 void aguiMvColumn(int colNum);
 void aguiMvUp(int numLines);
 void aguiMvDown(int numLines);
-void aguiBox(int row, int col, int width, int height, bool useSingleLine);
-void aguiBoxTop(int row, int col, int width, bool useSingleLine);
-void aguiBoxBottom(int row, int col, int width, bool useSingleLine);
-void aguiBoxLeft(int row, int col, int height, bool useSingleLine);
-void aguiBoxHoriz(int row, int col, bool useSingleLine);
-void aguiBoxRight(int row, int col, int height, bool useSingleLine);
-void aguiBoxVert(int row, int col, bool useSingleLine);
-void aguiHorizLine(int row, int col, int width, bool useSingleLine, bool addEnds);
-void aguiVertLine(int row, int col, int height, bool useSingleLine, bool addEnds);
+void aguiBox(int row, int col, int width, int height, int sord);
+void aguiBoxTop(int row, int col, int width, int sord);
+void aguiBoxBottom(int row, int col, int width, int sord);
+void aguiBoxLeft(int row, int col, int height, int sord);
+void aguiBoxHoriz(int row, int col, int sord);
+void aguiBoxRight(int row, int col, int height, int sord);
+void aguiBoxVert(int row, int col, int sord);
+void aguiHorizLine(int row, int col, int width, int sord);
+void aguiVertLine(int row, int col, int height, int sord);
 void aguiBlockBox(int row, int col, int width, int height, bool useHalfBlock);
 void aguiShape(int shape);
 void aguiMvShape(int row, int col, int shape);
@@ -271,5 +279,6 @@ void aguiMvDeleteChar(int row, int col, int numChars);
 void aguiMvInsertLine(int row, int col, int numLines);
 void aguiMvDeleteLine(int row, int col, int numLines);
 int aguiLoadScreen(char *screenNmae);
+void aguiDebug(char *fmt, ...);
 
 #endif
