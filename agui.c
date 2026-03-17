@@ -22,6 +22,7 @@ int currCol = 0;
 int screenRows = 0;
 int screenCols = 0;
 
+WidthHeight _wh;
 RowCol _savedCursor;
 LinkedList list;
 FILE *_debugfd = NULL;
@@ -73,7 +74,9 @@ void aguiSetColor(int fg, int bg) {
     case COLOR_BRIGHT_WHITE:    printf("\033[107m"); break;
     case COLOR_DEFAULT:         printf("\033[49m"); break;
     }
-}// Set text efects like boldness and italics.
+}
+
+// Set text efects like boldness and italics.
 void aguiSetEffect(int effect) {
     switch (effect) {
     case TEXT_BOLD:             printf("\033[1m"); break;
@@ -95,8 +98,20 @@ void aguiSetEffect(int effect) {
     }
 }
 
+// NOTE: You can not query the screen to get characters on screen. So you
+// can not restore the screen when the program ending.
+
 char *aguiVersion() {
     return prgVersion;
+}
+
+void aguiBegin() {
+	aguiScreenSize(&_wh);
+}
+
+void aguiEnd() {
+	if (_debugfd != NULL)
+		fclose(_debugfd);
 }
 
 // Home cursor
@@ -607,14 +622,15 @@ void aguiMvDeleteLine(int row, int col, int numLines) {
     currCol = col;
 }
 
-void aguiScreenSize(RowCol *rc) {
+void aguiScreenSize(WidthHeight *wh) {
 	struct winsize w;
     ioctl(STDOUT_FILENO, TIOCGWINSZ, &w);
 
-	rc->row = w.ws_row;
-	rc->col = w.ws_col;
+	wh->height = w.ws_row;
+	wh->width = w.ws_col;
 }
 
+// Used to help debug library.  Writes messages to a log file.
 void aguiDebug(char *fmt, ...) {
 	va_list valist;
 
@@ -642,13 +658,13 @@ int aguiLoadScreen(char *screenName) {
 		return 1;
 	}
 
-	RowCol rc;
+	WidthHeight wh;
 
-	aguiScreenSize(&rc);
-	if (rc.row > 0)
-		rc.row--;
+	aguiScreenSize(&wh);
+	if (wh.height > 0)
+		wh.height--;
 
-	// aguiMvText(10, 10, "row %d, col %d\n", rc.row, rc.col);
+	// aguiMvText(10, 10, "width %d, height %d\n", wh.width, wh.height);
 	// getchar();
 
 	FILE *f = fopen(screenName, "rb");
@@ -722,7 +738,7 @@ int aguiLoadScreen(char *screenName) {
 			}
 			// printf("%s", line);
 
-			if (++count >= rc.row)
+			if (++count >= wh.height)
 				break;
 		}
 

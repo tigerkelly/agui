@@ -213,10 +213,15 @@ typedef struct {
 	int col;
 } RowCol;
 
+typedef struct {
+	int width;
+	int height;
+} WidthHeight;
+
 extern int currRow;
 extern int currCol;
 
-// Box Drawing Characters - Single Line
+// Box Drawing Characters
 typedef struct {
 	wchar_t code;
 	const char *symbol;
@@ -224,6 +229,8 @@ typedef struct {
 } UnicodeChar;
 
 char *aguiVersion();
+void aguiBegin();
+void aguiEnd();
 void aguiSetColor(int fg, int bg);
 void aguiSetEffect(int effect);
 void aguiHomeCursor();
@@ -231,7 +238,7 @@ void aguiClearScreen();
 void aguiMvClearEol(int row, int col);
 void aguiClearEol();
 void aguiHideCursor(bool cursorOff);
-void aguiScreenSize(RowCol *rc);
+void aguiScreenSize(WidthHeight *wh);
 void aguiMvCursor(int row, int col);
 void aguiMvText(int row, int col, char *txt, ...);
 void aguiSetAll(int fg, int bg, int effect);

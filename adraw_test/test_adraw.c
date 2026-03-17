@@ -18,6 +18,7 @@ int main(int argc, char *argv[]) {
 
     sleep(1);
     
+	aguiBegin();
     aguiClearScreen();
     aguiHideCursor(true);
 
@@ -27,7 +28,7 @@ int main(int argc, char *argv[]) {
 
     aguiClearScreen();
     aguiHideCursor(false);
-
+	aguiEnd();
     
     return 0;
 }

@@ -19,6 +19,7 @@ int main(int argc, char *argv[]) {
 
     sleep(1);
     
+	aguiBegin();
     aguiClearScreen();
     aguiHideCursor(true);
 
@@ -28,13 +29,13 @@ int main(int argc, char *argv[]) {
     aguiMvText(2, 20, "Hello World !!!");
 	aguiSetAll(COLOR_DEFAULT, COLOR_DEFAULT, TEXT_BOLD);
     aguiBox(3, 20, 20, 10, true);
-    aguiHorizLine(5, 20, 21, true, true);
-    aguiVertLine(5, 25, 8, true, true);
-    aguiVertLine(5, 32, 8, true, true);
+    aguiHorizLine(5, 20, 21, true);
+    aguiVertLine(5, 25, 8, true);
+    aguiVertLine(5, 32, 8, true);
     aguiBox(3, 50, 20, 10, false);
-    aguiHorizLine(5, 50, 21, false, true);
-    aguiVertLine(5, 55, 8, false, true);
-    aguiVertLine(5, 62, 8, false, true);
+    aguiHorizLine(5, 50, 21, false);
+    aguiVertLine(5, 55, 8, true);
+    aguiVertLine(5, 62, 8, true);
 
         aguiBoxTop(14, 20, 20, true);
         aguiBoxBottom(16, 20, 20, true);
@@ -42,17 +43,17 @@ int main(int argc, char *argv[]) {
         aguiBoxTop(14, 50, 20, false);
         aguiBoxBottom(16, 50, 20, false);
 
-		aguiHorizLine(20, 50, 20, true, true);
-		aguiHorizLine(22, 50, 20, false, true);
+		aguiHorizLine(20, 50, 20, true);
+		aguiHorizLine(22, 50, 20, true);
 
-		aguiHorizLine(24, 50, 20, true, false);
-		aguiHorizLine(25, 50, 20, false, false);
+		aguiHorizLine(24, 50, 20, false);
+		aguiHorizLine(25, 50, 20, false);
 
-		aguiVertLine(4, 5, 10, true, true);
-		aguiVertLine(4, 8, 10, false, true);
+		aguiVertLine(4, 5, 10, true);
+		aguiVertLine(4, 8, 10, true);
 
-		aguiVertLine(4, 10, 10, true, false);
-		aguiVertLine(4, 12, 10, false, false);
+		aguiVertLine(4, 10, 10, false);
+		aguiVertLine(4, 12, 10, false);
 
         aguiBlockBox(25, 20, 10, 8, true);
         aguiBlockBox(25, 5, 10, 8, false);
@@ -147,6 +148,7 @@ int main(int argc, char *argv[]) {
 
     aguiClearScreen();
     aguiHideCursor(false);
+	aguiEnd();
 
     printf("Row %d, Col %d\n", rc.row, rc.col);
     
