@@ -1,0 +1,21 @@
+## ncurses is zero relative but the agui library is one relative.
+## The agui library will adjust the row and col
+## row col width height color dir style "text"
+## color       - (0-6) RED, GREEN, YELLOW, BLUE, MAGENTA, CYAN, WHITE
+## dir         - Direction Vertical=0, Horizontal=1
+## style       - Double=2, single=1 or ascii=0 line graphics
+## All blank lines need to start with ##
+## The objects are listed in order of Boxes, Lines, Glyphs, Text.
+## When list is searched, it is done in reverse order or bottom to top.
+##
+#@B  16   5   6   8   7   0 ## Box col=16 row=5 w=6 h=8 color=White style=single
+#@B  24   5   7   8   7   1 ## Box col=24 row=5 w=7 h=8 color=White style=double
+#@B  32   5   7   8   7   2 ## Box col=32 row=5 w=7 h=8 color=White style=ascii
+#@L   9   2  16   7   0   0 ## Line col=9 row=2 len=16 color=White dir=horizontal style=single
+#@L   9   3  16   7   0   1 ## Line col=9 row=3 len=16 color=White dir=horizontal style=double
+#@L   9   4  16   7   0   2 ## Line col=9 row=4 len=16 color=White dir=horizontal style=ascii
+#@L   9   5   8   7   1   0 ## Line col=9 row=5 len=8 color=White dir=vertical style=single
+#@L  11   5   8   7   1   1 ## Line col=11 row=5 len=8 color=White dir=vertical style=double
+#@L  13   5   8   7   1   2 ## Line col=13 row=5 len=8 color=White dir=vertical style=ascii
+#@T  27   2   0   0   7   0 "Kelly" ## Text col=27 row=2 color=White text=Kelly
+#@T  27   3   0   0   7   0 "┤" ## Glyph col=27 row=3 color=White text=┤

@@ -22,7 +22,7 @@ int main(int argc, char *argv[]) {
     aguiClearScreen();
     aguiHideCursor(true);
 
-	aguiLoadScreen("nmsstat.agui");
+	aguiLoadScreen("test.agui");
 
     getchar();
 

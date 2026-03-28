@@ -5,7 +5,7 @@ CC = gcc
 CFLAGS = -g -I../
 
 # Linker flags
-LDFLAGS = -L../ -lagui -lncursesw
+LDFLAGS = -L../ -lagui
 
 # Target executable
 TARGET = test_adraw
