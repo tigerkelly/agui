@@ -27,7 +27,7 @@ RowCol _savedCursor;
 LinkedList list;
 FILE *_debugfd = NULL;
 
-extern char *trimWhiteSpace(char *str);
+extern char *trimstr(char *str);
 char *strqtok (char *s1, const char *s2);
 int qparse(char *str, const char *chrs, char **argz, int max_argz);
 
@@ -36,43 +36,43 @@ int parse(char *str, const char *chrs, char **argz, int max_argz);
 // Set fg and bg color.
 void aguiSetColor(int fg, int bg) {
     switch (fg) {
-    case COLOR_BLACK:           printf("\033[30m"); break;
-    case COLOR_RED:             printf("\033[31m"); break;
-    case COLOR_GREEN:           printf("\033[32m"); break;
-    case COLOR_YELLOW:          printf("\033[33m"); break;
-    case COLOR_BLUE:            printf("\033[34m"); break;
-    case COLOR_MAGENTA:         printf("\033[35m"); break;
-    case COLOR_CYAN:            printf("\033[36m"); break;
-    case COLOR_WHITE:           printf("\033[37m"); break;
-    case COLOR_BRIGHT_BLACK:    printf("\033[90m"); break;
-    case COLOR_BRIGHT_RED:      printf("\033[91m"); break;
-    case COLOR_BRIGHT_GREEN:    printf("\033[92m"); break;
-    case COLOR_BRIGHT_YELLOW:   printf("\033[93m"); break;
-    case COLOR_BRIGHT_BLUE:     printf("\033[94m"); break;
-    case COLOR_BRIGHT_MAGENTA:  printf("\033[95m"); break;
-    case COLOR_BRIGHT_CYAN:     printf("\033[96m"); break;
-    case COLOR_BRIGHT_WHITE:    printf("\033[97m"); break;
-    case COLOR_DEFAULT:         printf("\033[39m"); break;
+    case C_BLACK:           printf("\033[30m"); break;
+    case C_RED:             printf("\033[31m"); break;
+    case C_GREEN:           printf("\033[32m"); break;
+    case C_YELLOW:          printf("\033[33m"); break;
+    case C_BLUE:            printf("\033[34m"); break;
+    case C_MAGENTA:         printf("\033[35m"); break;
+    case C_CYAN:            printf("\033[36m"); break;
+    case C_WHITE:           printf("\033[37m"); break;
+    case C_BRIGHT_BLACK:    printf("\033[90m"); break;
+    case C_BRIGHT_RED:      printf("\033[91m"); break;
+    case C_BRIGHT_GREEN:    printf("\033[92m"); break;
+    case C_BRIGHT_YELLOW:   printf("\033[93m"); break;
+    case C_BRIGHT_BLUE:     printf("\033[94m"); break;
+    case C_BRIGHT_MAGENTA:  printf("\033[95m"); break;
+    case C_BRIGHT_CYAN:     printf("\033[96m"); break;
+    case C_BRIGHT_WHITE:    printf("\033[97m"); break;
+    case C_DEFAULT:         printf("\033[39m"); break;
     }
 
     switch (bg) {
-    case COLOR_BLACK:           printf("\033[40m"); break;
-    case COLOR_RED:             printf("\033[41m"); break;
-    case COLOR_GREEN:           printf("\033[42m"); break;
-    case COLOR_YELLOW:          printf("\033[43m"); break;
-    case COLOR_BLUE:            printf("\033[44m"); break;
-    case COLOR_MAGENTA:         printf("\033[45m"); break;
-    case COLOR_CYAN:            printf("\033[46m"); break;
-    case COLOR_WHITE:           printf("\033[47m"); break;
-    case COLOR_BRIGHT_BLACK:    printf("\033[100m"); break;
-    case COLOR_BRIGHT_RED:      printf("\033[101m"); break;
-    case COLOR_BRIGHT_GREEN:    printf("\033[102m"); break;
-    case COLOR_BRIGHT_YELLOW:   printf("\033[103m"); break;
-    case COLOR_BRIGHT_BLUE:     printf("\033[104m"); break;
-    case COLOR_BRIGHT_MAGENTA:  printf("\033[105m"); break;
-    case COLOR_BRIGHT_CYAN:     printf("\033[106m"); break;
-    case COLOR_BRIGHT_WHITE:    printf("\033[107m"); break;
-    case COLOR_DEFAULT:         printf("\033[49m"); break;
+    case C_BLACK:           printf("\033[40m"); break;
+    case C_RED:             printf("\033[41m"); break;
+    case C_GREEN:           printf("\033[42m"); break;
+    case C_YELLOW:          printf("\033[43m"); break;
+    case C_BLUE:            printf("\033[44m"); break;
+    case C_MAGENTA:         printf("\033[45m"); break;
+    case C_CYAN:            printf("\033[46m"); break;
+    case C_WHITE:           printf("\033[47m"); break;
+    case C_BRIGHT_BLACK:    printf("\033[100m"); break;
+    case C_BRIGHT_RED:      printf("\033[101m"); break;
+    case C_BRIGHT_GREEN:    printf("\033[102m"); break;
+    case C_BRIGHT_YELLOW:   printf("\033[103m"); break;
+    case C_BRIGHT_BLUE:     printf("\033[104m"); break;
+    case C_BRIGHT_MAGENTA:  printf("\033[105m"); break;
+    case C_BRIGHT_CYAN:     printf("\033[106m"); break;
+    case C_BRIGHT_WHITE:    printf("\033[107m"); break;
+    case C_DEFAULT:         printf("\033[49m"); break;
     }
 }
 
@@ -279,16 +279,22 @@ void aguiSetAll(int fg, int bg, int effect) {
         aguiSetColor(fg, bg);
 }
 
-void aguiBox(int row, int col, int width, int height, int sord) {
+void aguiBox(int row, int col, int width, int height, BorderType bt) {
     int r = row;
     int c = col;
 
     UnicodeChar *u = NULL;
 
-    if (sord == S_GRAPH) {
-        u = single_line;
-    } else {
-        u = double_line;
+	switch (bt) {
+		case ASCII_BORDER:
+			u = ascii_line;
+			break;
+		case SINGLE_BORDER:
+			u = single_line;
+			break;
+		case DOUBLE_BORDER:
+			u = double_line;
+			break;
 	}
 
     aguiMvText(r, c++, "%s", u[TOP_LEFT].symbol);
@@ -313,16 +319,23 @@ void aguiBox(int row, int col, int width, int height, int sord) {
     currCol = col;
 }
 
-void aguiBoxTop(int row, int col, int width, int sord) {
+void aguiBoxTop(int row, int col, int width, BorderType bt) {
     int r = row;
     int c = col;
 
     UnicodeChar *u = NULL;
 
-    if (sord == S_GRAPH)
-        u = single_line;
-    else
-        u = double_line;
+	switch (bt) {
+		case ASCII_BORDER:
+			u = ascii_line;
+			break;
+		case SINGLE_BORDER:
+			u = single_line;
+			break;
+		case DOUBLE_BORDER:
+			u = double_line;
+			break;
+	}
 
     aguiMvText(r, c++, "%s", u[TOP_LEFT].symbol);
     for (int i = 1; i < width; i++) {
@@ -334,16 +347,23 @@ void aguiBoxTop(int row, int col, int width, int sord) {
     currCol = col;
 }
 
-void aguiBoxBottom(int row, int col, int width, int sord) {
+void aguiBoxBottom(int row, int col, int width, BorderType bt) {
     int r = row;
     int c = col;
 
     UnicodeChar *u = NULL;
 
-    if (sord == S_GRAPH)
-        u = single_line;
-    else
-        u = double_line;
+	switch (bt) {
+		case ASCII_BORDER:
+			u = ascii_line;
+			break;
+		case SINGLE_BORDER:
+			u = single_line;
+			break;
+		case DOUBLE_BORDER:
+			u = double_line;
+			break;
+	}
 
     aguiMvText(r, c++, "%s", u[BOTTOM_LEFT].symbol);
     for (int i = 1; i < width; i++) {
@@ -355,20 +375,25 @@ void aguiBoxBottom(int row, int col, int width, int sord) {
     currCol = col;
 }
 
-void aguiHorizLine(int row, int col, int width, int sord) {
+void aguiHorizLine(int row, int col, int width, BorderType bt) {
     int r = row;
     int c = col;
     currRow = row;
     currCol = col;
 
-	// aguiDebug("width %d", width);
-
     UnicodeChar *u = NULL;
 
-    if (sord == S_GRAPH)
-        u = single_line;
-    else
-        u = double_line;
+	switch (bt) {
+		case ASCII_BORDER:
+			u = ascii_line;
+			break;
+		case SINGLE_BORDER:
+			u = single_line;
+			break;
+		case DOUBLE_BORDER:
+			u = double_line;
+			break;
+	}
 
     int i = 0;
 
@@ -378,7 +403,7 @@ void aguiHorizLine(int row, int col, int width, int sord) {
     }
 }
 
-void aguiVertLine(int row, int col, int height, int sord) {
+void aguiVertLine(int row, int col, int height, BorderType bt) {
     int r = row;
     int c = col;
     currRow = row;
@@ -386,10 +411,17 @@ void aguiVertLine(int row, int col, int height, int sord) {
 
     UnicodeChar *u = NULL;
 
-    if (sord == S_GRAPH)
-        u = single_line;
-    else
-        u = double_line;
+	switch (bt) {
+		case ASCII_BORDER:
+			u = ascii_line;
+			break;
+		case SINGLE_BORDER:
+			u = single_line;
+			break;
+		case DOUBLE_BORDER:
+			u = double_line;
+			break;
+	}
 
     int i = 0;
 
@@ -399,106 +431,128 @@ void aguiVertLine(int row, int col, int height, int sord) {
     }
 }
 
-void aguiBlockBox(int row, int col, int width, int height, bool useHalfBlock) {
+void aguiBlockBox(int row, int col, int width, int height, BlockType bt) {
     int r = row;
     int c = col;
     currRow = row;
     currCol = col;
 
-    if (useHalfBlock == true) {
-        aguiMvText(r, c++, "%s", block_elements[BLK_LOWER_HALF].symbol);
-        for (int i = 1; i < width; i++) {
-            aguiMvText(r, c, "%s", block_elements[BLK_LOWER_HALF].symbol);
-            c++;
-        }
-        aguiMvText(r, c, "%s", block_elements[BLK_LOWER_HALF].symbol);
+	switch (bt) {
+		case BLOCK_NONE:
+			break;
+		case BLOCK_HALF:
+			aguiMvText(r, c++, "%s", block_elements[BLK_LOWER_HALF].symbol);
+			for (int i = 1; i < width; i++) {
+				aguiMvText(r, c, "%s", block_elements[BLK_LOWER_HALF].symbol);
+				c++;
+			}
+			aguiMvText(r, c, "%s", block_elements[BLK_LOWER_HALF].symbol);
 
-        r = row + 1;
-        for (int i = 1; i < height; i++) {
-            aguiMvText(r, col, "%s", block_elements[BLK_LEFT_HALF].symbol);
-            aguiMvText(r, col + width, "%s", block_elements[BLK_RIGHT_HALF].symbol);
-            r++;
-        }
+			r = row + 1;
+			for (int i = 1; i < height; i++) {
+				aguiMvText(r, col, "%s", block_elements[BLK_LEFT_HALF].symbol);
+				aguiMvText(r, col + width, "%s", block_elements[BLK_RIGHT_HALF].symbol);
+				r++;
+			}
 
-        c = col;
-        aguiMvText(r, c++, "%s", block_elements[BLK_UPPER_HALF].symbol);
-        for (int i = 1; i < width; i++) {
-            aguiMvText(r, c, "%s", block_elements[BLK_UPPER_HALF].symbol);
-            c++;
-        }
-        aguiMvText(r, c, "%s", block_elements[BLK_UPPER_HALF].symbol);
-    } else {
-        aguiMvText(r, c++, "%s", block_elements[BLK_FULL].symbol);
-        for (int i = 1; i < width; i++) {
-            aguiMvText(r, c, "%s", block_elements[BLK_FULL].symbol);
-            c++;
-        }
-        aguiMvText(r, c, "%s", block_elements[BLK_FULL].symbol);
+			c = col;
+			aguiMvText(r, c++, "%s", block_elements[BLK_UPPER_HALF].symbol);
+			for (int i = 1; i < width; i++) {
+				aguiMvText(r, c, "%s", block_elements[BLK_UPPER_HALF].symbol);
+				c++;
+			}
+			aguiMvText(r, c, "%s", block_elements[BLK_UPPER_HALF].symbol);
+			break;
+		case BLOCK_FULL:
+			aguiMvText(r, c++, "%s", block_elements[BLK_FULL].symbol);
+			for (int i = 1; i < width; i++) {
+				aguiMvText(r, c, "%s", block_elements[BLK_FULL].symbol);
+				c++;
+			}
+			aguiMvText(r, c, "%s", block_elements[BLK_FULL].symbol);
 
-        r = row + 1;
-        for (int i = 1; i < height; i++) {
-            aguiMvText(r, col, "%s", block_elements[BLK_FULL].symbol);
-            aguiMvText(r, col + width, "%s", block_elements[BLK_FULL].symbol);
-            r++;
-        }
+			r = row + 1;
+			for (int i = 1; i < height; i++) {
+				aguiMvText(r, col, "%s", block_elements[BLK_FULL].symbol);
+				aguiMvText(r, col + width, "%s", block_elements[BLK_FULL].symbol);
+				r++;
+			}
 
-        c = col;
-        aguiMvText(r, c++, "%s", block_elements[BLK_FULL].symbol);
-        for (int i = 1; i < width; i++) {
-            aguiMvText(r, c, "%s", block_elements[BLK_FULL].symbol);
-            c++;
-        }
-        aguiMvText(r, c, "%s", block_elements[BLK_FULL].symbol);
-    }
-
+			c = col;
+			aguiMvText(r, c++, "%s", block_elements[BLK_FULL].symbol);
+			for (int i = 1; i < width; i++) {
+				aguiMvText(r, c, "%s", block_elements[BLK_FULL].symbol);
+				c++;
+			}
+			aguiMvText(r, c, "%s", block_elements[BLK_FULL].symbol);
+			break;
+	}
 }
 
 // Draw a single Horiz line at row/col.
-void aguiBoxHoriz(int row, int col, int sord) {
+void aguiBoxHoriz(int row, int col, BorderType bt) {
 	int r = row;
     currRow = row;
     currCol = col;
 
     UnicodeChar *u = NULL;
 
-    if (sord == S_GRAPH) {
-        u = single_line;
-    } else {
-        u = double_line;
-    }
+	switch (bt) {
+		case ASCII_BORDER:
+			u = ascii_line;
+			break;
+		case SINGLE_BORDER:
+			u = single_line;
+			break;
+		case DOUBLE_BORDER:
+			u = double_line;
+			break;
+	}
 
     aguiMvText(r++, col, "%s", u[D_HORIZ_LINE].symbol);
 }
 
 // Draw a single vertical line at row/col
-void aguiBoxVert(int row, int col, int sord) {
+void aguiBoxVert(int row, int col, BorderType bt) {
 	int r = row;
     currRow = row;
     currCol = col;
 
     UnicodeChar *u = NULL;
 
-    if (sord == S_GRAPH) {
-        u = single_line;
-    } else {
-        u = double_line;
-    }
+	switch (bt) {
+		case ASCII_BORDER:
+			u = ascii_line;
+			break;
+		case SINGLE_BORDER:
+			u = single_line;
+			break;
+		case DOUBLE_BORDER:
+			u = double_line;
+			break;
+	}
 
     aguiMvText(r++, col, "%s", u[D_VERT_LINE].symbol);
 }
 
-void aguiBoxLeft(int row, int col, int height, int sord) {
+void aguiBoxLeft(int row, int col, int height, BorderType bt) {
     int r = row;
     currRow = row;
     currCol = col;
 
     UnicodeChar *u = NULL;
 
-    if (sord == S_GRAPH) {
-        u = single_line;
-    } else {
-        u = double_line;
-    }
+	switch (bt) {
+		case ASCII_BORDER:
+			u = ascii_line;
+			break;
+		case SINGLE_BORDER:
+			u = single_line;
+			break;
+		case DOUBLE_BORDER:
+			u = double_line;
+			break;
+	}
 
     aguiMvText(r++, col, "%s", u[TOP_LEFT].symbol);
     for (int i = 0; i < height; i++) {
@@ -508,18 +562,24 @@ void aguiBoxLeft(int row, int col, int height, int sord) {
     aguiMvText(row + height, col, "%s", u[BOTTOM_LEFT].symbol);
 }
 
-void aguiBoxRight(int row, int col, int height, int sord) {
+void aguiBoxRight(int row, int col, int height, BorderType bt) {
     int r = row;
     currRow = row;
     currCol = col;
 
     UnicodeChar *u = NULL;
 
-    if (sord == S_GRAPH) {
-        u = single_line;
-    } else {
-        u = double_line;
-    }
+	switch (bt) {
+		case ASCII_BORDER:
+			u = ascii_line;
+			break;
+		case SINGLE_BORDER:
+			u = single_line;
+			break;
+		case DOUBLE_BORDER:
+			u = double_line;
+			break;
+	}
 
     aguiMvText(r++, col, "%s", u[TOP_RIGHT].symbol);
     for (int i = 0; i < height; i++) {
@@ -664,9 +724,6 @@ int aguiLoadScreen(char *screenName) {
 	if (wh.height > 0)
 		wh.height--;
 
-	// aguiMvText(10, 10, "width %d, height %d\n", wh.width, wh.height);
-	// getchar();
-
 	FILE *f = fopen(screenName, "rb");
 	if (f != NULL) {
 		char line[256];
@@ -679,58 +736,69 @@ int aguiLoadScreen(char *screenName) {
 			char *p = strchr(line, '\n');
 			if (p != NULL)
 				*p = '\0';
+			p = strstr(line, "##");
+			if (p != NULL)
+				*p = '\0';
+			trimstr(line);
+			if (line[0] == '\0')
+				continue;
+
 			if (strncmp(line, "#@", 2) == 0) {
 				char *args[128];
 				char *s = strdup(line);
 				qparse(s, " ", args, 128);
 				char type = args[0][2];
-				// aguiDebug("line '%s'", line);
-				if (type == 'B') {
+
+				if (type == 'B') {					// Should be 7 parts
+					// type=B col=16 row=5 w=6 h=8 color=White style=ascii
 					NodeData *nd = calloc(1, sizeof(NodeData));
 					nd->type = args[0][2];
-					nd->r = atoi(args[1]);
-					nd->c = atoi(args[2]);
+					nd->r = atoi(args[2]);
+					nd->c = atoi(args[1]);
 					nd->w = atoi(args[3]);
 					nd->h = atoi(args[4]);
 					nd->color = atoi(args[5]);
-					nd->line_dir = args[6][0];		// Horizontal or vertical
-					nd->style = args[7][0];			// single or double line graphics
+					if (args[6][0] == '0')
+						nd->style = ASCII_BORDER;		// SINGLE, DOUBLE or ASCII
+					else if (args[6][0] == '1')
+						nd->style = SINGLE_BORDER;		// SINGLE, DOUBLE or ASCII
+					else if (args[6][0] == '2')
+						nd->style = DOUBLE_BORDER;		// SINGLE, DOUBLE or ASCII
+
 					listPushBack(&list, *nd);
-				} else if (type == 'T') {
+				} else if (type == 'T') {				// Should be 8 parts
+					// type=T col=16 row=5 w=6 h=8 color=White style=ascii text=Text
 					NodeData *nd = calloc(1, sizeof(NodeData));
 					nd->type = args[0][2];
-					nd->r = atoi(args[1]);
-					nd->c = atoi(args[2]);
+					nd->r = atoi(args[2]);
+					nd->c = atoi(args[1]);
 					nd->w = atoi(args[3]);
 					nd->h = atoi(args[4]);
 					nd->color = atoi(args[5]);
-					nd->line_dir = args[6][0];
-					nd->style = args[7][0];
-					strcpy(nd->text, args[8]);
-					// aguiDebug("nd->text: '%s'", nd->text);
+					if (args[6][0] == '0')
+						nd->style = ASCII_BORDER;		// SINGLE, DOUBLE or ASCII
+					else if (args[6][0] == '1')
+						nd->style = SINGLE_BORDER;		// SINGLE, DOUBLE or ASCII
+					else if (args[6][0] == '2')
+						nd->style = DOUBLE_BORDER;		// SINGLE, DOUBLE or ASCII
+					strcpy(nd->text, args[7]);
 					listPushBack(&list, *nd);
-				} else if (type == 'L') {
+				} else if (type == 'L') {				// Should be 7 parts
+					// type=L col=9 row=2 len=16 color=White dir=horizontal style=ascii
 					NodeData *nd = calloc(1, sizeof(NodeData));
 					nd->type = args[0][2];
-					nd->r = atoi(args[1]);
-					nd->c = atoi(args[2]);
+					nd->r = atoi(args[2]);
+					nd->c = atoi(args[1]);
 					nd->w = atoi(args[3]);
-					nd->h = atoi(args[4]);
-					nd->color = atoi(args[5]);
-					nd->line_dir = args[6][0];
-					nd->style = args[7][0];
-					listPushBack(&list, *nd);
-				} else if (type == 'G') {
-					NodeData *nd = calloc(1, sizeof(NodeData));
-					nd->type = args[0][2];
-					nd->r = atoi(args[1]);
-					nd->c = atoi(args[2]);
-					nd->w = atoi(args[3]);
-					nd->h = atoi(args[4]);
-					nd->color = atoi(args[5]);
-					nd->line_dir = args[6][0];
-					nd->style = args[7][0];
-					strcpy(nd->text, args[8]);
+					// nd->h = atoi(args[4]);
+					nd->color = atoi(args[4]);
+					nd->line_dir = atoi(args[5]);
+					if (args[6][0] == '0')
+						nd->style = ASCII_BORDER;		// SINGLE, DOUBLE or ASCII
+					else if (args[6][0] == '1')
+						nd->style = SINGLE_BORDER;		// SINGLE, DOUBLE or ASCII
+					else if (args[6][0] == '2')
+						nd->style = DOUBLE_BORDER;		// SINGLE, DOUBLE or ASCII
 					listPushBack(&list, *nd);
 				}
 				free(s);
@@ -751,28 +819,21 @@ int aguiLoadScreen(char *screenName) {
 		ListNode *cur = list.head;
 		while(cur) {
 			if (cur->data.type == 'B') {
-				aguiSetColor(cur->data.color, COLOR_DEFAULT);
+				aguiSetColor(cur->data.color, C_DEFAULT);
 				aguiBox(cur->data.r+1, cur->data.c+1, cur->data.w, cur->data.h, cur->data.style);
-				aguiSetColor(COLOR_DEFAULT, COLOR_DEFAULT);
+				aguiSetColor(C_DEFAULT, C_DEFAULT);
 			} else if (cur->data.type == 'T') {
-				aguiSetColor(cur->data.color, COLOR_DEFAULT);
+				aguiSetColor(cur->data.color, C_DEFAULT);
 				aguiMvText(cur->data.r+1, cur->data.c+1, cur->data.text);
-				aguiSetColor(COLOR_DEFAULT, COLOR_DEFAULT);
+				aguiSetColor(C_DEFAULT, C_DEFAULT);
 			} else if (cur->data.type == 'L') {
-			// aguiDebug("type=%c, r=%d, c=%d, w=%d, h=%d, color=%d, line_dir=%c, style=%c, test=%s",
-					// cur->data.type, cur->data.r+1, cur->data.c+1, cur->data.w, cur->data.h,
-					// cur->data.color, cur->data.line_dir, cur->data.style, cur->data.text);
-				aguiSetColor(COLOR_WHITE, COLOR_DEFAULT);
-				if (cur->data.line_dir == H_DIR) {
+				aguiSetColor(C_WHITE, C_DEFAULT);
+				if (cur->data.line_dir == 0) {
 					aguiHorizLine(cur->data.r+1, cur->data.c+1, cur->data.w, cur->data.style);
 				} else {
-					aguiVertLine(cur->data.r+1, cur->data.c+1, cur->data.h, cur->data.style);
+					aguiVertLine(cur->data.r+1, cur->data.c+1, cur->data.w, cur->data.style);
 				}
-				aguiSetColor(COLOR_DEFAULT, COLOR_DEFAULT);
-			} else if (cur->data.type == 'G') {
-				aguiSetColor(cur->data.color, COLOR_DEFAULT);
-				aguiMvText(cur->data.r+1, cur->data.c+1, cur->data.text);
-				aguiSetColor(COLOR_DEFAULT, COLOR_DEFAULT);
+				aguiSetColor(C_DEFAULT, C_DEFAULT);
 			}
 			cur = cur->next;
 		}

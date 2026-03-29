@@ -1,8 +1,8 @@
 # Set export PROFILE=yes to turn on profiling flags.
 
 CC=cc
-SRCS=agui.c linkedList.c parse.c qparse.c strqtok.c
-OBJS=agui.o linkedList.o parse.o qparse.o strqtok.o
+SRCS=agui.c linkedList.c parse.c qparse.c strqtok.c trimstr.c
+OBJS=agui.o linkedList.o parse.o qparse.o strqtok.o trimstr.o
 
 LDFLAGS=-L/usr/local/lib
 CFLAGS=-std=gnu99 -g -Wall -I./

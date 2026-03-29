@@ -22,6 +22,7 @@ all: $(TARGET)
 # Build the executable
 $(TARGET): $(OBJS)
 	$(CC) -o $@ $^ $(LDFLAGS)
+	cp adraw ~/bin/adraw
 
 # Compile .c files to .o files
 %.o: %.c

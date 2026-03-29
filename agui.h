@@ -1,6 +1,8 @@
 #ifndef AGUI_H
 #define AGUI_H
 
+#include <stdbool.h>
+
 #define SHM_NAME		"/nms_shm"
 #define MAX_PROTOCOLS	256
 #define MAX_ITEMS		256
@@ -11,25 +13,27 @@
 
 #define D_GRAPH		'D'
 #define S_GRAPH		'S'
+#define A_GRAPH		'A'
+#define U_GRAPH		'U'
 
 enum {
-	COLOR_BLACK,
-	COLOR_RED,
-	COLOR_GREEN,
-	COLOR_YELLOW,
-	COLOR_BLUE,
-	COLOR_MAGENTA,
-	COLOR_CYAN,
-	COLOR_WHITE,
-	COLOR_BRIGHT_BLACK,
-	COLOR_BRIGHT_RED,
-	COLOR_BRIGHT_GREEN,
-	COLOR_BRIGHT_YELLOW,
-	COLOR_BRIGHT_BLUE,
-	COLOR_BRIGHT_MAGENTA,
-	COLOR_BRIGHT_CYAN,
-	COLOR_BRIGHT_WHITE,
-	COLOR_DEFAULT
+	C_BLACK,
+	C_RED,
+	C_GREEN,
+	C_YELLOW,
+	C_BLUE,
+	C_MAGENTA,
+	C_CYAN,
+	C_WHITE,
+	C_BRIGHT_BLACK,
+	C_BRIGHT_RED,
+	C_BRIGHT_GREEN,
+	C_BRIGHT_YELLOW,
+	C_BRIGHT_BLUE,
+	C_BRIGHT_MAGENTA,
+	C_BRIGHT_CYAN,
+	C_BRIGHT_WHITE,
+	C_DEFAULT
 };
 
 enum {
@@ -228,6 +232,24 @@ typedef struct {
 	const char *description;
 } UnicodeChar;
 
+typedef struct _asciiChar {
+	int fgColor;
+	int bgColor;
+	UnicodeChar uc;
+} AsciiChar;
+
+typedef enum {
+	ASCII_BORDER,
+	SINGLE_BORDER,
+	DOUBLE_BORDER
+} BorderType;
+
+typedef enum {
+	BLOCK_NONE,
+	BLOCK_FULL,
+	BLOCK_HALF
+} BlockType;
+
 char *aguiVersion();
 void aguiBegin();
 void aguiEnd();
@@ -248,16 +270,16 @@ void aguiBackward(int numCols);
 void aguiMvColumn(int colNum);
 void aguiMvUp(int numLines);
 void aguiMvDown(int numLines);
-void aguiBox(int row, int col, int width, int height, int sord);
-void aguiBoxTop(int row, int col, int width, int sord);
-void aguiBoxBottom(int row, int col, int width, int sord);
-void aguiBoxLeft(int row, int col, int height, int sord);
-void aguiBoxHoriz(int row, int col, int sord);
-void aguiBoxRight(int row, int col, int height, int sord);
-void aguiBoxVert(int row, int col, int sord);
-void aguiHorizLine(int row, int col, int width, int sord);
-void aguiVertLine(int row, int col, int height, int sord);
-void aguiBlockBox(int row, int col, int width, int height, bool useHalfBlock);
+void aguiBox(int row, int col, int width, int height, BorderType bt);
+void aguiBoxTop(int row, int col, int width, BorderType bt);
+void aguiBoxBottom(int row, int col, int width, BorderType bt);
+void aguiBoxLeft(int row, int col, int height, BorderType bt);
+void aguiBoxHoriz(int row, int col, BorderType bt);
+void aguiBoxRight(int row, int col, int height, BorderType bt);
+void aguiBoxVert(int row, int col, BorderType bt);
+void aguiHorizLine(int row, int col, int width, BorderType bt);
+void aguiVertLine(int row, int col, int height, BorderType bt);
+void aguiBlockBox(int row, int col, int width, int height, BlockType bt);
 void aguiShape(int shape);
 void aguiMvShape(int row, int col, int shape);
 void aguiArrow(int shape);
@@ -287,5 +309,10 @@ void aguiMvInsertLine(int row, int col, int numLines);
 void aguiMvDeleteLine(int row, int col, int numLines);
 int aguiLoadScreen(char *screenNmae);
 void aguiDebug(char *fmt, ...);
+
+char *strqtok (char *s1, const char *s2);
+int qparse(char *str, const char *chrs, char **argz, int max_argz);
+
+int parse(char *str, const char *chrs, char **argz, int max_argz);
 
 #endif

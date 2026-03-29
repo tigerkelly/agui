@@ -5,6 +5,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "agui.h"
+
 /* ─────────────────────────────────────────────
    Data payload stored in each node
    ───────────────────────────────────────────── */
@@ -16,7 +18,7 @@ typedef struct {
     int h;
     int color;
 	int line_dir;
-    int style;
+    BorderType style;
     char text[256];
 } NodeData;
 

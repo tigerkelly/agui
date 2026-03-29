@@ -32,6 +32,21 @@ UnicodeChar double_line[] = {
     {0x256C, "╬", "BOX DRAWINGS DOUBLE VERTICAL AND HORIZONTAL"},
 };
 
+// No Border Box Drawing
+UnicodeChar ascii_line[] = {
+    {0x002d, "-", "BOX DRAWINGS ASCII HORIZONTAL"},
+    {0x007c, "|", "BOX DRAWINGS ASCII VERTICAL"},
+    {0x002b, "+", "BOX DRAWINGS ASCII DOWN AND RIGHT"},
+    {0x002b, "+", "BOX DRAWINGS ASCII DOWN AND LEFT"},
+    {0x002b, "+", "BOX DRAWINGS ASCII UP AND RIGHT"},
+    {0x002b, "+", "BOX DRAWINGS ASCII UP AND LEFT"},
+    {0x002b, "+", "BOX DRAWINGS ASCII VERTICAL AND RIGHT"},
+    {0x002b, "+", "BOX DRAWINGS ASCII VERTICAL AND LEFT"},
+    {0x002b, "+", "BOX DRAWINGS ASCII DOWN AND HORIZONTAL"},
+    {0x002b, "+", "BOX DRAWINGS ASCII UP AND HORIZONTAL"},
+    {0x002b, "+", "BOX DRAWINGS ASCII VERTICAL AND HORIZONTAL"},
+};
+
 // Block Elements
 const UnicodeChar block_elements[] = {
     {0x2580, "▀", "UPPER HALF BLOCK"},

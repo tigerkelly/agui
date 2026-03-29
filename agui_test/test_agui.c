@@ -28,41 +28,43 @@ int main(int argc, char *argv[]) {
 	aguiSetAll(COLOR_BLUE, COLOR_DEFAULT, TEXT_BOLD);
     aguiMvText(2, 20, "Hello World !!!");
 	aguiSetAll(COLOR_DEFAULT, COLOR_DEFAULT, TEXT_BOLD);
-    aguiBox(3, 20, 20, 10, true);
+    aguiBox(3, 20, 20, 10, SINGLE_BORDER);
     aguiHorizLine(5, 20, 21, true);
     aguiVertLine(5, 25, 8, true);
     aguiVertLine(5, 32, 8, true);
-    aguiBox(3, 50, 20, 10, false);
-    aguiHorizLine(5, 50, 21, false);
-    aguiVertLine(5, 55, 8, true);
-    aguiVertLine(5, 62, 8, true);
+    aguiBox(3, 50, 20, 10, DOUBLE_BORDER);
+    aguiHorizLine(5, 50, 21, DOUBLE_BORDER);
+    aguiVertLine(5, 55, 8, SINGLE_BORDER);
+    aguiVertLine(5, 62, 8, SINGLE_BORDER);
 
-        aguiBoxTop(14, 20, 20, true);
-        aguiBoxBottom(16, 20, 20, true);
+        aguiBoxTop(14, 20, 20, SINGLE_BORDER);
+        aguiBoxBottom(16, 20, 20, SINGLE_BORDER);
 
-        aguiBoxTop(14, 50, 20, false);
-        aguiBoxBottom(16, 50, 20, false);
+        aguiBoxTop(14, 50, 20, DOUBLE_BORDER);
+        aguiBoxBottom(16, 50, 20, DOUBLE_BORDER);
 
-		aguiHorizLine(20, 50, 20, true);
-		aguiHorizLine(22, 50, 20, true);
+		aguiHorizLine(20, 50, 20, SINGLE_BORDER);
+		aguiHorizLine(22, 50, 20, SINGLE_BORDER);
 
-		aguiHorizLine(24, 50, 20, false);
-		aguiHorizLine(25, 50, 20, false);
+		aguiHorizLine(24, 50, 20, SINGLE_BORDER);
+		aguiHorizLine(25, 50, 20, SINGLE_BORDER);
 
-		aguiVertLine(4, 5, 10, true);
-		aguiVertLine(4, 8, 10, true);
+		aguiVertLine(4, 5, 10, SINGLE_BORDER);
+		aguiVertLine(4, 8, 10, SINGLE_BORDER);
 
-		aguiVertLine(4, 10, 10, false);
-		aguiVertLine(4, 12, 10, false);
+		aguiVertLine(4, 10, 10, SINGLE_BORDER);
+		aguiVertLine(4, 12, 10, SINGLE_BORDER);
 
-        aguiBlockBox(25, 20, 10, 8, true);
-        aguiBlockBox(25, 5, 10, 8, false);
+        aguiBlockBox(25, 20, 10, 8, BLOCK_HALF);
+        aguiBlockBox(25, 5, 10, 8, BLOCK_FULL);
 
-        aguiBoxLeft(25, 35, 10, true);
-        aguiBoxRight(25, 37, 10, true);
+        aguiBoxLeft(25, 35, 10, SINGLE_BORDER);
+        aguiBoxRight(25, 37, 10, SINGLE_BORDER);
 
-        aguiBoxLeft(25, 40, 10, false);
-        aguiBoxRight(25, 42, 10, false);
+        aguiBoxLeft(25, 40, 10, SINGLE_BORDER);
+        aguiBoxRight(25, 42, 10, SINGLE_BORDER);
+
+    aguiBox(25, 50, 20, 10, ASCII_BORDER);
 
         aguiMvText(17, 2, "Currency: ");
         aguiCurrency(C_CENT_SIGN);
