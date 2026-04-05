@@ -25,9 +25,9 @@ int main(int argc, char *argv[]) {
 
     aguiWindowTitle("AGUI SAMPLE");
 
-	aguiSetAll(COLOR_BLUE, COLOR_DEFAULT, TEXT_BOLD);
+	aguiSetAll(C_BLUE, C_DEFAULT, TEXT_BOLD);
     aguiMvText(2, 20, "Hello World !!!");
-	aguiSetAll(COLOR_DEFAULT, COLOR_DEFAULT, TEXT_BOLD);
+	aguiSetAll(C_DEFAULT, C_DEFAULT, TEXT_BOLD);
     aguiBox(3, 20, 20, 10, SINGLE_BORDER);
     aguiHorizLine(5, 20, 21, true);
     aguiVertLine(5, 25, 8, true);

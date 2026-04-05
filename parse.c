@@ -25,8 +25,6 @@
 
 #include <string.h>
 
-// #include "strutils.h"
-
 /*
  * This function parse tokenizes a string based on the characters passed in.
  * This function skips empty slots.
@@ -50,28 +48,27 @@
  *           The return pointer array is null terminated.
  */
 int parse(char *str, const char *chrs, char **argz, int max_argz) {
-	char *pt1, *pt = str;
-	int count = 0;
+	if (!str || !chrs || !argz || max_argz <= 0) {
+        return 0;
+    }
 
-	max_argz--;						/* save room for null, to mark end */
-									/* of the pointer array */
+    char *saveptr;
+    char *token;
+    int count = 0;
 
-	argz[count] = (char *)0;		/* set to null just in case we do */
-									/* not find any string tokens */
+    // We reserve the last slot for the NULL terminator
+    int limit = max_argz - 1;
 
-	/* loop until we have completely tokenized the string. */
-	/* strtok is a UNIX stdio library call. */
+    // Use strtok_r for thread safety
+    token = strtok_r(str, chrs, &saveptr);
+    
+    while (token != NULL && count < limit) {
+        argz[count++] = token;
+        token = strtok_r(NULL, chrs, &saveptr);
+    }
 
-	while( (pt1 = strtok(pt, chrs)) != (char *)0 ) {
-		argz[count++] = pt1;		/* found a token save it's address */
-		pt = (char *)0;				/* set to null so that strtok function */
-									/* will continue to parse the same line */
+    // Always NULL terminate the array
+    argz[count] = NULL;
 
-		argz[count] = (char *)0;	/* set next pointer to null */
-
-		if( count >= max_argz )		/* break when we have reached count */
-			break;
-	}
-
-	return(count);					/* return number of tokens found */
+    return count;
 }
